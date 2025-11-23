@@ -1,0 +1,57 @@
+from data.exercises import Module, Lesson
+
+MODULE = Module(
+    id=6,
+    title="Módulo 06: Proyectos Finales",
+    lessons=[
+        Lesson(
+            id=110,
+            title="Proyecto 1: Web Scraper (Petición)",
+            content='Estudia el siguiente código: Proyecto 1: Web Scraper (Petición)',
+            example_code='#!/usr/bin/python\n# --- IMPORTANTE: EJECUCIÓN LOCAL REQUERIDA ---\n# Este ejercicio requiere librerías externas o generar archivos.\n# Por favor, ejecútalo en tu IDE local (VS Code, PyCharm, etc).\n# -----------------------------------------------------\n# Proyecto Final 1: Web Scraper de Libros\n# Parte 1: Realizar la petición HTTP\n\nimport requests\n\n# Sitio de pruebas para scraping\nURL = "http://books.toscrape.com/"\n\nprint(f"Conectando a {URL}...")\n\ntry:\n    response = requests.get(URL)\n    \n    if response.status_code == 200:\n        print("¡Conexión exitosa!")\n        print(f"Status Code: {response.status_code}")\n        print(f"Encoding: {response.encoding}")\n        \n        # Mostrar los primeros 500 caracteres del HTML\n        html_content = response.text\n        print("\\n--- Contenido HTML (Fragmento) ---")\n        print(html_content[:500])\n        print("...")\n        \n        # Guardamos el HTML para la siguiente parte\n        with open("books.html", "w", encoding="utf-8") as f:\n            f.write(html_content)\n        print("\\nHTML guardado en \'books.html\'")\n        \n    else:\n        print(f"Error: Status Code {response.status_code}")\n        \nexcept Exception as e:\n    print(f"Error de conexión: {e}")\n\n# --- EJERCICIO INTERACTIVO ---\n# 1. Ejecuta el código en tu IDE local.\n# 2. Verifica que se haya creado el archivo \'books.html\'.\n',
+            exercise_prompt="Ejecuta el código y analiza su funcionamiento.",
+            validator=lambda code: (True, "¡Ejercicio completado!"),
+            hint="Consulta el repositorio oficial para más contexto.",
+            type="interactive"
+        ),
+        Lesson(
+            id=111,
+            title="Proyecto 1: Web Scraper (Extracción)",
+            content='Estudia el siguiente código: Proyecto 1: Web Scraper (Extracción)',
+            example_code='#!/usr/bin/python\n# --- IMPORTANTE: EJECUCIÓN LOCAL REQUERIDA ---\n# Este ejercicio requiere librerías externas o generar archivos.\n# Por favor, ejecútalo en tu IDE local (VS Code, PyCharm, etc).\n# -----------------------------------------------------\n# Proyecto Final 1: Web Scraper de Libros\n# Parte 2: Extraer datos con BeautifulSoup\n\nfrom bs4 import BeautifulSoup\nimport os\nimport csv\n\nfilename = "books.html"\n\nif not os.path.exists(filename):\n    print(f"Error: {filename} no existe. Ejecuta la lección anterior.")\nelse:\n    print(f"Analizando {filename}...")\n    with open(filename, "r", encoding="utf-8") as f:\n        html_content = f.read()\n        \n    soup = BeautifulSoup(html_content, "html.parser")\n    \n    # Encontrar todos los artículos de libros\n    articles = soup.find_all("article", class_="product_pod")\n    print(f"Se encontraron {len(articles)} libros.\\n")\n    \n    books_data = []\n    \n    for article in articles:\n        # Título (está en el atributo title del enlace h3 -> a)\n        h3 = article.find("h3")\n        link = h3.find("a")\n        title = link["title"]\n        \n        # Precio (está en div class="product_price" -> p class="price_color")\n        price_tag = article.find("p", class_="price_color")\n        price = price_tag.text\n        \n        # Disponibilidad\n        stock_tag = article.find("p", class_="instock availability")\n        stock = stock_tag.text.strip()\n        \n        print(f"Libro: {title[:30]}... | Precio: {price}")\n        books_data.append([title, price, stock])\n        \n    # Guardar a CSV\n    csv_file = "libros_extraidos.csv"\n    with open(csv_file, "w", newline="", encoding="utf-8") as f:\n        writer = csv.writer(f)\n        writer.writerow(["Titulo", "Precio", "Stock"])\n        writer.writerows(books_data)\n        \n    print(f"\\nDatos exportados a {csv_file}")\n\n# --- EJERCICIO INTERACTIVO ---\n# 1. Ejecuta el código en tu IDE local.\n# 2. Abre el archivo CSV generado (o léelo con Python) para ver los resultados.\n',
+            exercise_prompt="Ejecuta el código y analiza su funcionamiento.",
+            validator=lambda code: (True, "¡Ejercicio completado!"),
+            hint="Consulta el repositorio oficial para más contexto.",
+            type="interactive"
+        ),
+        Lesson(
+            id=112,
+            title="Proyecto 2: Analizador de Logs (Lectura)",
+            content='Estudia el siguiente código: Proyecto 2: Analizador de Logs (Lectura)',
+            example_code='#!/usr/bin/python\n# --- IMPORTANTE: EJECUCIÓN LOCAL REQUERIDA ---\n# Este ejercicio requiere librerías externas o generar archivos.\n# Por favor, ejecútalo en tu IDE local (VS Code, PyCharm, etc).\n# -----------------------------------------------------\n# Proyecto Final 2: Analizador de Logs de Servidor\n# Parte 1: Generar y Leer Logs\n\n# Simulamos un archivo de logs de Apache/Nginx\nlog_data = """\n192.168.1.10 - - [23/Nov/2025:10:00:01 +0000] "GET /index.html HTTP/1.1" 200 1024\n192.168.1.11 - - [23/Nov/2025:10:00:05 +0000] "GET /about.html HTTP/1.1" 200 512\n192.168.1.12 - - [23/Nov/2025:10:00:10 +0000] "GET /contact.php HTTP/1.1" 404 150\n192.168.1.10 - - [23/Nov/2025:10:00:15 +0000] "POST /login HTTP/1.1" 200 0\n10.0.0.5 - - [23/Nov/2025:10:01:00 +0000] "GET /admin HTTP/1.1" 403 200\n192.168.1.11 - - [23/Nov/2025:10:01:05 +0000] "GET /style.css HTTP/1.1" 200 3000\n"""\n\nfilename = "server.log"\nprint(f"Creando archivo de logs simulado: {filename}")\nwith open(filename, "w") as f:\n    f.write(log_data.strip())\n\nprint("Leyendo archivo línea por línea...")\nwith open(filename, "r") as f:\n    for i, line in enumerate(f, 1):\n        print(f"Línea {i}: {line.strip()}")\n\n# --- EJERCICIO INTERACTIVO ---\n# 1. Ejecuta el código en tu IDE local.\n# 2. Añade manualmente una línea más al archivo log_data con un error 500.\n',
+            exercise_prompt="Ejecuta el código y analiza su funcionamiento.",
+            validator=lambda code: (True, "¡Ejercicio completado!"),
+            hint="Consulta el repositorio oficial para más contexto.",
+            type="interactive"
+        ),
+        Lesson(
+            id=113,
+            title="Proyecto 2: Analizador de Logs (Reporte)",
+            content='Estudia el siguiente código: Proyecto 2: Analizador de Logs (Reporte)',
+            example_code='#!/usr/bin/python\n# --- IMPORTANTE: EJECUCIÓN LOCAL REQUERIDA ---\n# Este ejercicio requiere librerías externas o generar archivos.\n# Por favor, ejecútalo en tu IDE local (VS Code, PyCharm, etc).\n# -----------------------------------------------------\n# Proyecto Final 2: Analizador de Logs de Servidor\n# Parte 2: Generar Reporte de Estadísticas\n\nimport re\nfrom collections import Counter\n\nfilename = "server.log"\n\nprint("Analizando logs...")\n\nip_pattern = r"(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3})"\nstatus_pattern = r"\\" (\\d{3}) "\n\nips = []\nstatus_codes = []\n\ntry:\n    with open(filename, "r") as f:\n        for line in f:\n            # Extraer IP\n            ip_match = re.search(ip_pattern, line)\n            if ip_match:\n                ips.append(ip_match.group(1))\n            \n            # Extraer Código de Estado\n            status_match = re.search(status_pattern, line)\n            if status_match:\n                status_codes.append(status_match.group(1))\n                \n    # Estadísticas\n    total_requests = len(ips)\n    unique_ips = len(set(ips))\n    top_ips = Counter(ips).most_common(3)\n    errors_404 = status_codes.count("404")\n    errors_403 = status_codes.count("403")\n    \n    print(f"\\n--- Reporte de Tráfico ---")\n    print(f"Total Peticiones: {total_requests}")\n    print(f"IPs Únicas: {unique_ips}")\n    print(f"Errores 404: {errors_404}")\n    print(f"Errores 403: {errors_403}")\n    print(f"\\nTop 3 IPs Activas:")\n    for ip, count in top_ips:\n        print(f"  {ip}: {count} peticiones")\n        \n    # Guardar reporte\n    with open("reporte_logs.txt", "w") as f:\n        f.write(f"Reporte generado.\\nTotal: {total_requests}\\nErrores 404: {errors_404}")\n    print("\\nReporte guardado en \'reporte_logs.txt\'")\n        \nexcept FileNotFoundError:\n    print("Error: server.log no encontrado.")\n\n# --- EJERCICIO INTERACTIVO ---\n# 1. Ejecuta el código en tu IDE local.\n',
+            exercise_prompt="Ejecuta el código y analiza su funcionamiento.",
+            validator=lambda code: (True, "¡Ejercicio completado!"),
+            hint="Consulta el repositorio oficial para más contexto.",
+            type="interactive"
+        ),
+        Lesson(
+            id=114,
+            title="Proyecto 3: Organizador de Archivos",
+            content='Estudia el siguiente código: Proyecto 3: Organizador de Archivos',
+            example_code='#!/usr/bin/python\n# --- IMPORTANTE: EJECUCIÓN LOCAL REQUERIDA ---\n# Este ejercicio requiere librerías externas o generar archivos.\n# Por favor, ejecútalo en tu IDE local (VS Code, PyCharm, etc).\n# -----------------------------------------------------\n# Proyecto Final 3: Organizador Automático de Archivos\n\nimport os\nimport shutil\n\n# 1. Configuración: Crear entorno de prueba\nbase_dir = "downloads_test"\nif not os.path.exists(base_dir):\n    os.mkdir(base_dir)\n    \n# Crear archivos dummy\nfiles_to_create = ["foto1.jpg", "documento.pdf", "notas.txt", "cancion.mp3", "foto2.png", "script.py"]\nprint(f"Creando archivos de prueba en {base_dir}...")\nfor f in files_to_create:\n    with open(os.path.join(base_dir, f), "w") as file:\n        file.write("dummy content")\n\n# 2. Lógica de Organización\ndef organizar_archivos(directorio):\n    extensions = {\n        "Imagenes": [".jpg", ".png", ".gif"],\n        "Documentos": [".pdf", ".txt", ".docx"],\n        "Audio": [".mp3", ".wav"],\n        "Codigo": [".py", ".js", ".html"]\n    }\n    \n    print(f"\\nOrganizando {directorio}...")\n    \n    for filename in os.listdir(directorio):\n        filepath = os.path.join(directorio, filename)\n        \n        if os.path.isdir(filepath):\n            continue\n            \n        _, ext = os.path.splitext(filename)\n        moved = False\n        \n        for folder, ext_list in extensions.items():\n            if ext.lower() in ext_list:\n                target_folder = os.path.join(directorio, folder)\n                if not os.path.exists(target_folder):\n                    os.mkdir(target_folder)\n                    \n                shutil.move(filepath, os.path.join(target_folder, filename))\n                print(f"Movido: {filename} -> {folder}/")\n                moved = True\n                break\n        \n        if not moved:\n            print(f"Omitido: {filename} (Extensión desconocida)")\n\n# 3. Ejecutar\norganizar_archivos(base_dir)\nprint("\\n¡Organización completada!")\n\n# --- EJERCICIO INTERACTIVO ---\n# 1. Ejecuta el código en tu IDE local.\n# 2. Verifica la carpeta \'downloads_test\' para ver las subcarpetas creadas.\n',
+            exercise_prompt="Ejecuta el código y analiza su funcionamiento.",
+            validator=lambda code: (True, "¡Ejercicio completado!"),
+            hint="Consulta el repositorio oficial para más contexto.",
+            type="interactive"
+        ),    ]
+)

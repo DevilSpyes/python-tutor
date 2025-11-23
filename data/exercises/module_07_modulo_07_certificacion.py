@@ -1,0 +1,18 @@
+from data.exercises import Module, Lesson
+
+MODULE = Module(
+    id=7,
+    title="Módulo 07: Certificación",
+    lessons=[
+        Lesson(
+            id=114,
+            title="Obtener Certificado",
+            content="# Proyecto Final: Generador de Certificados\n\nHas llegado al final. Como último ejercicio, utilizarás la librería `fpdf` para generar tu propio certificado.\n\n1.  Analiza el código proporcionado.\n2.  Cambia la variable `nombre_estudiante` con tu nombre real.\n3.  Ejecuta el código para descargar tu PDF.",
+            example_code='from fpdf import FPDF\nfrom fpdf.enums import XPos, YPos\nfrom datetime import datetime\n\n# --- CONFIGURACIÓN ---\n# NOTA: Si ejecutas este código en tu ordenador (PyCharm, VSCode),\n# necesitas instalar la librería primero ejecutando en tu terminal:\n# pip install fpdf2\n\n# ¡Escribe tu nombre aquí para generar tu certificado!\nnombre_estudiante = "TU NOMBRE AQUÍ"\n\ndef generar_certificado(nombre):\n    print(f"Generando certificado para: {nombre}...")\n    \n    # Crear PDF (Horizontal, A4)\n    pdf = FPDF(orientation=\'L\', unit=\'mm\', format=\'A4\')\n    pdf.add_page()\n    \n    # Borde\n    pdf.set_line_width(1)\n    pdf.rect(5, 5, 287, 200)\n    pdf.rect(8, 8, 281, 194)\n    \n    # Título\n    pdf.set_font(\'Helvetica\', \'B\', 30)\n    pdf.cell(0, 40, \'CERTIFICADO DE FINALIZACIÓN\', new_x=XPos.LMARGIN, new_y=YPos.NEXT, align=\'C\')\n    pdf.ln(10)\n    \n    # Cuerpo\n    pdf.set_font(\'Helvetica\', \'\', 16)\n    pdf.cell(0, 10, \'Este documento certifica que\', new_x=XPos.LMARGIN, new_y=YPos.NEXT, align=\'C\')\n    pdf.ln(10)\n    \n    # Nombre del Estudiante\n    pdf.set_font(\'Helvetica\', \'B\', 40)\n    pdf.set_text_color(44, 62, 80) # Azul Oscuro\n    pdf.cell(0, 20, nombre, new_x=XPos.LMARGIN, new_y=YPos.NEXT, align=\'C\')\n    pdf.ln(10)\n    \n    # Texto\n    pdf.set_text_color(0, 0, 0)\n    pdf.set_font(\'Helvetica\', \'\', 16)\n    pdf.cell(0, 10, \'ha completado satisfactoriamente el curso\', new_x=XPos.LMARGIN, new_y=YPos.NEXT, align=\'C\')\n    pdf.ln(5)\n    \n    # Nombre del Curso\n    pdf.set_font(\'Helvetica\', \'B\', 24)\n    pdf.set_text_color(192, 57, 43) # Rojo\n    pdf.cell(0, 20, \'Python para Ciberseguridad\', new_x=XPos.LMARGIN, new_y=YPos.NEXT, align=\'C\')\n    pdf.ln(20)\n    \n    # Fecha\n    date_str = datetime.now().strftime("%d/%m/%Y")\n    pdf.set_font(\'Helvetica\', \'I\', 12)\n    pdf.set_text_color(0, 0, 0)\n    pdf.cell(0, 10, f"Fecha: {date_str}", new_x=XPos.LMARGIN, new_y=YPos.NEXT, align=\'C\')\n    pdf.ln(20)\n    \n    # Firma\n    pdf.set_font(\'Helvetica\', \'\', 14)\n    pdf.cell(0, 10, \'_\' * 30, new_x=XPos.LMARGIN, new_y=YPos.NEXT, align=\'C\')\n    pdf.cell(0, 10, \'Carlos Dominguez\', new_x=XPos.LMARGIN, new_y=YPos.NEXT, align=\'C\')\n    pdf.set_font(\'Helvetica\', \'I\', 10)\n    pdf.cell(0, 5, \'Instructor & Creador\', new_x=XPos.LMARGIN, new_y=YPos.NEXT, align=\'C\')\n    \n    # Guardar archivo\n    filename = f"certificado_{nombre.replace(\' \', \'_\')}.pdf"\n    pdf.output(filename)\n    print(f"¡Éxito! Certificado guardado como: {filename}")\n    return filename\n\nif __name__ == "__main__":\n    if nombre_estudiante == "TU NOMBRE AQUÍ":\n        print("¡Error! Por favor actualiza la variable \'nombre_estudiante\' con tu nombre real.")\n    else:\n        generar_certificado(nombre_estudiante)\n',
+            exercise_prompt="Personaliza el código y ejecútalo.",
+            validator=lambda code: (True, "¡Certificado Generado!"),
+            hint="Asegúrate de cambiar el valor de nombre_estudiante.",
+            type="interactive"
+        ),
+    ]
+)

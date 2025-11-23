@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyberSec Python Tutor (Web Edition)</title>
+    <link rel="stylesheet" href="/static/css/style.css?v=3">
+    <link rel="stylesheet" href="/static/css/ai_chat.css?v=1">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@400;600;800&display=swap"
+        rel="stylesheet">
+    <!-- Pyodide CDN -->
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
+</head>
+
+<body>
+    <div class="app-container" id="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <span class="icon">🛡️</span> CyberTutor <span style="font-size: 0.5em; color: #aaa;">Web</span>
+            </div>
+            <nav id="module-list" class="nav-menu">
+                <div class="loading-state">Initializing Pyodide...</div>
+            </nav>
+            <div class="settings-link" id="sidebar-settings-btn">⚙️ Configuración</div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-bar">
+                <h1 id="lesson-title">Cargando Lección...</h1>
+                <div class="progress-badge">Level 1</div>
+            </header>
+
+            <!-- Initial Loader -->
+            <div id="initial-loader" style="padding: 20px; text-align: center; color: #58a6ff;">
+                <h2>🚀 Iniciando CyberTutor...</h2>
+                <p>Descargando entorno Python (esto puede tardar unos segundos)...</p>
+            </div>
+
+            <div class="workspace" id="workspace-container" style="display: none;">
+                <!-- Left: Lesson & Editor -->
+                <div class="editor-section">
+                    <div class="lesson-content" id="lesson-content">
+                        <!-- Markdown content goes here -->
+                    </div>
+                    <div class="code-editor-container">
+                        <div class="editor-header">
+                            <span>main.py</span>
+                            <button id="run-code" class="btn-primary" disabled>⏳ Cargando Python...</button>
+                        </div>
+                        <textarea id="code-editor" spellcheck="false"></textarea>
+                    </div>
+                    <div class="terminal" id="terminal">
+                        <div class="terminal-header">Terminal Output</div>
+                        <div class="terminal-body" id="terminal-body">
+                            <span class="prompt">system@browser:~$</span> Booting Pyodide Kernel...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: AI Assistant -->
+                <div class="ai-panel">
+                    <div class="ai-header">
+                        <div class="ai-title">
+                            <span>🤖 AI Tutor</span>
+                            <span id="ai-mode-badge">API</span>
+                        </div>
+                        <div class="ai-controls">
+                            <button id="ai-settings-btn" class="icon-btn" title="Configuración">⚙️</button>
+                        </div>
+                    </div>
+                    <div class="chat-history" id="chat-history">
+                        <!-- Messages will appear here -->
+                    </div>
+                    <div class="chat-input-area">
+                        <textarea id="chat-input" placeholder="Pregunta sobre el código..." rows="1"></textarea>
+                        <button id="send-chat" title="Enviar">▶</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Settings Modal (Dynamically rendered by JS) -->
+    <div id="ai-settings-modal" class="modal"></div>
+    <!-- Main App -->
+    <script type="module" src="/static/js/app.js?v=5"></script>
+</body>
+
+</html>

@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.env
+.venv
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Model Binaries (CRITICAL for Netlify)
+*.gguf
+*.bin
+*.onnx
+*.pth
+models/
+
+# Logs
+*.log
+server.log
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# AI Models (Exclude large binaries)
+public/static/models/**/*.onnx
+public/static/models/**/*.onnx_data
+public/static/models/**/*.bin
+public/static/models/**/*.wasm
+# Allow documentation
+!public/static/models/DOWNLOAD_MODELS.md
+
+# Static Site Generation
+public/static/generated/
