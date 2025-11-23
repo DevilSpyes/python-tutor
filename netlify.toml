@@ -1,6 +1,6 @@
 [build]
-  publish = "public"
-  command = "echo 'Static site ready'"
+  publish = "dist"
+  command = "npm run build'"
 
 [dev]
   framework = "#static"
