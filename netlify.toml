@@ -1,6 +1,6 @@
 [build]
-  publish = "public"
-  command = "."
+  publish = "."
+  command = ""
 
 [dev]
   framework = "#static"
@@ -8,6 +8,5 @@
 [[headers]]
   for = "/*"
   [headers.values]
-    # Required for SharedArrayBuffer (if Pyodide needs it for some features)
     Cross-Origin-Opener-Policy = "same-origin"
     Cross-Origin-Embedder-Policy = "require-corp"
