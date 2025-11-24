@@ -7,9 +7,17 @@ __pycache__/
 env/
 venv/
 .env
+.env.*
 .venv
 pip-log.txt
 pip-delete-this-directory.txt
+
+# Netlify
+.netlify/
+
+# System
+.DS_Store
+Thumbs.db
 
 # Model Binaries (CRITICAL for Netlify)
 *.gguf

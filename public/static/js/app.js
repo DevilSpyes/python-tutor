@@ -78,7 +78,7 @@ async function init() {
         elements.loader.style.display = "flex";
         elements.loader.innerHTML = `<div style="color: #ff7b72; text-align: center; padding: 20px;">
             <h2>❌ Error de Inicio</h2>
-            <p>${err.message}</p>
+            <p>${window.DOMPurify ? window.DOMPurify.sanitize(err.message) : err.message}</p>
             <p style="font-size: 0.8em; color: #8b949e;">Revisa la consola para más detalles.</p>
         </div>`;
     }
@@ -145,7 +145,8 @@ function loadLesson(id) {
 
     // Render Content
     if (elements.lessonTitle) elements.lessonTitle.innerText = foundLesson.title;
-    elements.lessonContent.innerHTML = window.marked ? window.marked.parse(foundLesson.content) : foundLesson.content;
+    const rawLessonHtml = window.marked ? window.marked.parse(foundLesson.content) : foundLesson.content;
+    elements.lessonContent.innerHTML = window.DOMPurify ? window.DOMPurify.sanitize(rawLessonHtml) : rawLessonHtml;
     elements.editor.value = foundLesson.example_code;
 
     // Clear Terminal

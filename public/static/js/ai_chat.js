@@ -104,7 +104,8 @@ export class AIChat {
         msgDiv.className = `message ${role}`;
 
         if (role === "ai") {
-            msgDiv.innerHTML = window.marked ? window.marked.parse(content) : content;
+            const rawHtml = window.marked ? window.marked.parse(content) : content;
+            msgDiv.innerHTML = window.DOMPurify ? window.DOMPurify.sanitize(rawHtml) : rawHtml;
         } else {
             msgDiv.innerText = content;
         }
@@ -138,7 +139,8 @@ export class AIChat {
         let fullResponse = "";
         const onChunk = (chunk) => {
             fullResponse += chunk;
-            aiMsgDiv.innerHTML = window.marked ? window.marked.parse(fullResponse) : fullResponse;
+            const rawHtml = window.marked ? window.marked.parse(fullResponse) : fullResponse;
+            aiMsgDiv.innerHTML = window.DOMPurify ? window.DOMPurify.sanitize(rawHtml) : rawHtml;
             this.elements.chatHistory.scrollTop = this.elements.chatHistory.scrollHeight;
         };
 
