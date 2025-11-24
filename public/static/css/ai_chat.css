@@ -351,23 +351,4 @@
 }
 
 /* --- Mobile Responsiveness --- */
-@media (max-width: 768px) {
-    .ai-panel {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        z-index: 100;
-        display: none;
-        /* Hidden by default on mobile, toggled via JS */
-    }
-
-    .ai-panel.active {
-        display: flex;
-    }
-
-    .message {
-        max-width: 90%;
-    }
-}
+/* Handled by style.css for unified layout control */

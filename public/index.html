@@ -21,9 +21,10 @@
 <body>
     <div class="app-container" id="app-container">
         <!-- Sidebar -->
-        <aside class="sidebar">
+        <aside class="sidebar" id="sidebar">
             <div class="logo">
                 <span class="icon">🛡️</span> CyberTutor <span style="font-size: 0.5em; color: #aaa;">Web</span>
+                <button id="close-sidebar-btn" class="icon-btn mobile-only">✕</button>
             </div>
             <nav id="module-list" class="nav-menu">
                 <div class="loading-state">Initializing Pyodide...</div>
@@ -34,8 +35,14 @@
         <!-- Main Content -->
         <main class="main-content">
             <header class="top-bar">
-                <h1 id="lesson-title">Cargando Lección...</h1>
-                <div class="progress-badge">Level 1</div>
+                <div class="left-controls">
+                    <button id="mobile-menu-btn" class="icon-btn mobile-only">☰</button>
+                    <h1 id="lesson-title">Cargando Lección...</h1>
+                </div>
+                <div class="right-controls">
+                    <div class="progress-badge">Level 1</div>
+                    <button id="mobile-chat-btn" class="icon-btn mobile-only">🤖</button>
+                </div>
             </header>
 
             <!-- Initial Loader -->
@@ -74,6 +81,7 @@
                         </div>
                         <div class="ai-controls">
                             <button id="ai-settings-btn" class="icon-btn" title="Configuración">⚙️</button>
+                            <button id="close-ai-btn" class="icon-btn mobile-only">✕</button>
                         </div>
                     </div>
                     <div class="chat-history" id="chat-history">

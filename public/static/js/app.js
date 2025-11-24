@@ -193,7 +193,49 @@ function setupEventListeners() {
         }
     });
 
-    // Note: AI Chat listeners are now handled by AIUI class
+    // Mobile Navigation Logic
+    const sidebar = document.getElementById("sidebar");
+    const mobileMenuBtn = document.getElementById("mobile-menu-btn");
+    const closeSidebarBtn = document.getElementById("close-sidebar-btn");
+    const mobileChatBtn = document.getElementById("mobile-chat-btn");
+    const aiPanel = document.querySelector(".ai-panel");
+
+    if (mobileMenuBtn) {
+        mobileMenuBtn.onclick = () => {
+            sidebar.classList.add("active");
+        };
+    }
+
+    if (closeSidebarBtn) {
+        closeSidebarBtn.onclick = () => {
+            sidebar.classList.remove("active");
+        };
+    }
+
+    if (mobileChatBtn) {
+        mobileChatBtn.onclick = () => {
+            // Toggle AI Panel
+            if (aiPanel.classList.contains("active")) {
+                aiPanel.classList.remove("active");
+            } else {
+                aiPanel.classList.add("active");
+            }
+        };
+    }
+
+    const closeAiBtn = document.getElementById("close-ai-btn");
+    if (closeAiBtn) {
+        closeAiBtn.onclick = () => {
+            aiPanel.classList.remove("active");
+        };
+    }
+
+    // Close sidebar when clicking a lesson
+    document.getElementById("module-list").addEventListener("click", (e) => {
+        if (e.target.classList.contains("lesson-item") && window.innerWidth <= 768) {
+            sidebar.classList.remove("active");
+        }
+    });
 }
 
 // Start
