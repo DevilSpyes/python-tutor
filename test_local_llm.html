@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Local AI (Tiny)</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            background: #111;
+            color: #eee;
+            padding: 20px;
+        }
+
+        #log {
+            background: #222;
+            padding: 10px;
+            border: 1px solid #444;
+            height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            margin-bottom: 10px;
+        }
+
+        .success {
+            color: #0f0;
+        }
+
+        .error {
+            color: #f00;
+        }
+
+        .info {
+            color: #0ff;
+        }
+
+        button {
+            padding: 10px 20px;
+            cursor: pointer;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+
+        button:disabled {
+            background: #555;
+            cursor: not-allowed;
+        }
+
+        input {
+            padding: 10px;
+            width: 70%;
+            background: #333;
+            color: white;
+            border: 1px solid #555;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🧪 Test Local AI (Tiny)</h1>
+    <p>Prueba aislada del adaptador local (WebGPU/CPU).</p>
+
+    <div id="log"></div>
+
+    <div style="display: flex; gap: 10px;">
+        <input type="text" id="prompt" value="Escribe un hola mundo en Python." placeholder="Escribe tu prompt...">
+        <button id="sendBtn">Enviar</button>
+    </div>
+
+    <script type="module">
+        import { LocalLLMAdapter } from './static/js/llm_local_adapter.js';
+
+        const logDiv = document.getElementById('log');
+        const sendBtn = document.getElementById('sendBtn');
+        const promptInput = document.getElementById('prompt');
+
+        function log(msg, type = 'normal') {
+            const div = document.createElement('div');
+            div.innerText = `[${new Date().toLocaleTimeString()}] ${msg}`;
+            if (type) div.className = type;
+            logDiv.appendChild(div);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        const adapter = new LocalLLMAdapter();
+
+        async function init() {
+            log("Iniciando adaptador...", "info");
+            sendBtn.disabled = true;
+
+            try {
+                const hasGPU = await adapter.checkWebGPUSupport();
+                log(`Soporte WebGPU: ${hasGPU ? 'SÍ' : 'NO'}`, hasGPU ? 'success' : 'info');
+
+                log("Cargando modelo (esto puede tardar la primera vez)...", "info");
+
+                await adapter.loadModel(null, {
+                    onProgress: (data) => {
+                        if (data.status === 'progress') {
+                            // Throttle logs
+                            if (Math.round(data.progress) % 10 === 0) {
+                                log(`Descargando: ${Math.round(data.progress)}%`, 'info');
+                            }
+                        }
+                    }
+                });
+
+                const status = await adapter.getStatus();
+                log(`Modelo cargado: ${status.model}`, 'success');
+                log(`Dispositivo: ${status.device.toUpperCase()}`, 'success');
+
+                sendBtn.disabled = false;
+                sendBtn.innerText = "Enviar";
+
+            } catch (err) {
+                log(`Error fatal: ${err.message}`, 'error');
+                console.error(err);
+            }
+        }
+
+        sendBtn.addEventListener('click', async () => {
+            const text = promptInput.value;
+            if (!text) return;
+
+            log(`Usuario: ${text}`);
+            sendBtn.disabled = true;
+
+            try {
+                log("Generando respuesta...", "info");
+                const response = await adapter.sendMessage([{ role: 'user', content: text }], {
+                    onToken: (token) => {
+                        // Optional: log tokens
+                    }
+                });
+
+                log(`IA: ${response.text}`, 'success');
+                log(`Tokens estimados: ${response.metadata.tokens}`, 'info');
+
+            } catch (err) {
+                log(`Error generando: ${err.message}`, 'error');
+            } finally {
+                sendBtn.disabled = false;
+            }
+        });
+
+        // Auto-init
+        init();
+    </script>
+</body>
+
+</html>

@@ -328,4 +328,4 @@ IA local más robusta cuando WebGPU sea estándar
 📄 Licencia
 Proyecto libre, sin ánimo de lucro.
 Todo el contenido puede ser reutilizado con atribución.
- 097efe544dbfef1de8869fe97a968f2f4218ce6e
+

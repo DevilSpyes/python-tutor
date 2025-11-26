@@ -1,7 +1,7 @@
 from data.exercises import Module, Lesson
 
 MODULE = Module(
-    id=5,
+    id=4,
     title="Módulo 04: Automatización y Scripts",
     lessons=[
         Lesson(

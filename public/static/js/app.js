@@ -1,13 +1,15 @@
 import { AIChat } from "./ai_chat.js";
+import { TypingSimulator } from "./typingSimulator.js";
+import { LeftPanel } from "./ui_leftpanel.js";
 
 // Global State
 let pyodide = null;
-let currentLessonId = 1;
 let currentLesson = null;
 let allModules = [];
-let aiChat = null; // New AI Controller
+let aiChat = null;
+let typingSim = null;
+let leftPanel = null;
 
-// DOM Elements
 // DOM Elements
 let elements = {};
 
@@ -26,17 +28,29 @@ function setupDOMElements() {
         sendChatBtn: document.getElementById("send-chat"),
         chatHistory: document.getElementById("chat-history"),
         aiStatus: document.getElementById("ai-status"),
-        settingsBtn: document.getElementById("settings-btn"),
+        settingsBtn: document.getElementById("ai-settings-btn"), // Updated ID
         settingsModal: document.getElementById("settings-modal"),
         closeSettings: document.getElementById("close-settings"),
         saveSettings: document.getElementById("save-settings"),
         apiKeyInput: document.getElementById("api-key"),
-        providerSelect: document.getElementById("ai-provider")
+        providerSelect: document.getElementById("ai-provider"),
+        aiPanel: document.querySelector(".ai-window") // Updated selector
     };
 
     // Debugging: Check for missing critical elements
     if (!elements.loader) console.error("CRITICAL: #initial-loader not found!");
     if (!elements.appContainer) console.error("CRITICAL: #app-container not found!");
+}
+
+async function loadPyodide() {
+    logToTerminal("Cargando motor Python...", "info");
+    if (!window.loadPyodide) {
+        throw new Error("Pyodide script not loaded");
+    }
+    const p = await window.loadPyodide({
+        indexURL: "https://cdn.jsdelivr.net/pyodide/v0.25.0/full/"
+    });
+    return p;
 }
 
 // --- Initialization ---
@@ -52,7 +66,7 @@ async function init() {
         const runBtn = document.getElementById("run-code");
         if (runBtn) {
             runBtn.disabled = false;
-            runBtn.innerText = "▶ Ejecutar";
+            runBtn.innerText = "EXECUTE_SCRIPT"; // Updated text
         }
 
         // 2. Load Exercises
@@ -60,6 +74,16 @@ async function init() {
 
         // 3. Initialize AI System
         aiChat = new AIChat();
+        typingSim = new TypingSimulator();
+
+        // Trigger Initial AI Message
+        setTimeout(() => {
+            if (aiChat) {
+                // Force clear history for "Fresh Boot" experience (User Request)
+                aiChat.clearHistory();
+                aiChat.showWelcomeMessage();
+            }
+        }, 1500); // Slight delay after load
 
         // 4. Setup Event Listeners
         setupEventListeners();
@@ -69,7 +93,7 @@ async function init() {
 
         // 6. Hide Loader (Success)
         elements.loader.style.display = "none";
-        elements.appContainer.style.display = "flex";
+        elements.appContainer.style.display = "grid"; // Grid layout
         if (elements.workspaceContainer) elements.workspaceContainer.style.display = "flex";
 
     } catch (err) {
@@ -85,40 +109,22 @@ async function init() {
 }
 
 async function loadExercises() {
-    const response = await fetch("/static/exercises.json");
-    allModules = await response.json();
-    renderSidebar();
+    try {
+        const response = await fetch(`/static/exercises_v2.json?v=${new Date().getTime()}`);
+        if (!response.ok) throw new Error("Failed to load exercises");
+        allModules = await response.json();
+        // Expose for AI Search
+        window.allModules = allModules;
+    } catch (error) {
+        console.error("Error loading exercises:", error);
+        // Optionally, display an error message to the user
+        alert("Failed to load exercises. Please try again later.");
+    }
+    // The LeftPanel class now handles rendering the sidebar, so no direct call here.
 }
 
 // --- Sidebar & Navigation ---
-function renderSidebar() {
-    elements.moduleList.innerHTML = "";
-
-    allModules.forEach(module => {
-        const group = document.createElement("div");
-        group.className = "module-group";
-
-        const header = document.createElement("div");
-        header.className = "module-header";
-        header.innerText = module.title;
-        header.onclick = () => toggleModule(group);
-
-        const lessonsContainer = document.createElement("div");
-        lessonsContainer.className = "module-lessons";
-
-        module.lessons.forEach(lesson => {
-            const item = document.createElement("div");
-            item.className = "lesson-item";
-            item.innerText = lesson.title;
-            item.onclick = () => loadLesson(lesson.id);
-            lessonsContainer.appendChild(item);
-        });
-
-        group.appendChild(header);
-        group.appendChild(lessonsContainer);
-        elements.moduleList.appendChild(group);
-    });
-}
+// Old renderModuleList removed - replaced by LeftPanel class
 
 function toggleModule(groupElement) {
     const lessons = groupElement.querySelector(".module-lessons");
@@ -128,30 +134,56 @@ function toggleModule(groupElement) {
 function loadLesson(id) {
     // Find lesson
     let foundLesson = null;
+    let foundModule = null;
     for (const mod of allModules) {
         const lesson = mod.lessons.find(l => l.id === id);
         if (lesson) {
             foundLesson = lesson;
+            foundModule = mod;
             break;
         }
     }
 
     if (!foundLesson) return;
     currentLesson = foundLesson;
+    // Expose for AI Context
+    window.currentLesson = currentLesson;
 
     // Update UI
     document.querySelectorAll(".lesson-item").forEach(el => el.classList.remove("active"));
-    // Highlight active (simple check by text for now, or add ID to element)
 
-    // Render Content
-    if (elements.lessonTitle) elements.lessonTitle.innerText = foundLesson.title;
-    const rawLessonHtml = window.marked ? window.marked.parse(foundLesson.content) : foundLesson.content;
-    elements.lessonContent.innerHTML = window.DOMPurify ? window.DOMPurify.sanitize(rawLessonHtml) : rawLessonHtml;
-    elements.editor.value = foundLesson.example_code;
+    // Update Editor Header
+    // Update Headers
+    const editorHeader = document.getElementById("code-editor-header");
+    const lessonTitle = document.getElementById("lesson-title");
+
+    if (lessonTitle) {
+        lessonTitle.innerText = foundLesson.title.toUpperCase();
+    }
+
+    if (editorHeader) {
+        editorHeader.innerText = foundLesson.title.toUpperCase();
+    }
+
+    // Start Typing Effect
+    // Disable run button while typing
+    elements.runBtn.disabled = true;
+    elements.runBtn.innerText = "TYPING...";
+
+    typingSim.typeCode(elements.editor, foundLesson.example_code, {
+        onChar: () => {
+            // Optional: Scroll to bottom or highlight
+        },
+        onComplete: () => {
+            elements.runBtn.disabled = false;
+            elements.runBtn.innerText = "EXECUTE_SCRIPT";
+        }
+    });
 
     // Clear Terminal
     elements.terminalBody.innerHTML = "";
-    logToTerminal("Lección cargada: " + foundLesson.title);
+    logToTerminal("SYSTEM BREACH IN PROGRESS...");
+    logToTerminal("Loading module: " + foundLesson.title);
 }
 
 // --- Code Execution ---
@@ -172,9 +204,9 @@ async function runCode() {
 function logToTerminal(msg, type = "normal") {
     const div = document.createElement("div");
     div.innerText = `> ${msg}`;
-    if (type === "error") div.style.color = "#ff7b72";
-    if (type === "success") div.style.color = "#2ea043";
-    if (type === "info") div.style.color = "#58a6ff";
+    if (type === "error") div.classList.add("log-error");
+    if (type === "success") div.classList.add("log-success");
+    if (type === "info") div.classList.add("log-info");
     elements.terminalBody.appendChild(div);
     elements.terminalBody.scrollTop = elements.terminalBody.scrollHeight;
 }
@@ -194,50 +226,38 @@ function setupEventListeners() {
         }
     });
 
-    // Mobile Navigation Logic
-    const sidebar = document.getElementById("sidebar");
-    const mobileMenuBtn = document.getElementById("mobile-menu-btn");
-    const closeSidebarBtn = document.getElementById("close-sidebar-btn");
-    const mobileChatBtn = document.getElementById("mobile-chat-btn");
-    const aiPanel = document.querySelector(".ai-panel");
+    // Initialize Left Panel
+    leftPanel = new LeftPanel(allModules, (lessonId) => loadLesson(lessonId));
 
-    if (mobileMenuBtn) {
-        mobileMenuBtn.onclick = () => {
-            sidebar.classList.add("active");
-        };
-    }
-
-    if (closeSidebarBtn) {
-        closeSidebarBtn.onclick = () => {
-            sidebar.classList.remove("active");
-        };
-    }
-
-    if (mobileChatBtn) {
-        mobileChatBtn.onclick = () => {
-            // Toggle AI Panel
-            if (aiPanel.classList.contains("active")) {
-                aiPanel.classList.remove("active");
-            } else {
-                aiPanel.classList.add("active");
+    // Close sidebar when clicking a lesson (Mobile)
+    if (elements.moduleList) {
+        elements.moduleList.addEventListener("click", (e) => {
+            if (e.target.classList.contains("lesson-item") && window.innerWidth <= 768) {
+                // Optional: Close drawer logic if implemented
             }
-        };
+        });
     }
+}
 
-    const closeAiBtn = document.getElementById("close-ai-btn");
-    if (closeAiBtn) {
-        closeAiBtn.onclick = () => {
-            aiPanel.classList.remove("active");
-        };
-    }
+// --- Clock ---
+function updateTime() {
+    const timeEl = document.querySelector(".system-time");
+    if (!timeEl) return;
 
-    // Close sidebar when clicking a lesson
-    document.getElementById("module-list").addEventListener("click", (e) => {
-        if (e.target.classList.contains("lesson-item") && window.innerWidth <= 768) {
-            sidebar.classList.remove("active");
-        }
-    });
+    const now = new Date();
+    // Madrid Time (CET/CEST)
+    const options = {
+        timeZone: "Europe/Madrid",
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+    };
+    const timeString = now.toLocaleTimeString('en-US', options);
+
+    timeEl.innerText = `${timeString} // HACK_TIME`;
 }
 
 // Start
 init();
+setInterval(updateTime, 1000); // Update every second
+updateTime(); // Initial call

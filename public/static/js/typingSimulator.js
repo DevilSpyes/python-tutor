@@ -1,0 +1,61 @@
+/**
+ * typingSimulator.js
+ * Simulates a "hacker typing" effect for code blocks.
+ */
+
+export class TypingSimulator {
+    constructor() {
+        this.isPaused = false;
+        this.speed = 1; // Default speed multiplier
+        this.baseDelay = 10; // Base delay in ms (Very Fast)
+        this.timeouts = [];
+    }
+
+    typeCode(container, code, options = {}) {
+        // Clear previous typing
+        this.stop();
+        container.value = "";
+
+        // Options
+        const onComplete = options.onComplete || (() => { });
+        const onChar = options.onChar || (() => { });
+
+        let index = 0;
+        const totalChars = code.length;
+
+        const typeNext = () => {
+            if (this.isPaused) return;
+
+            if (index < totalChars) {
+                // Add character
+                container.value += code[index];
+                container.scrollTop = container.scrollHeight; // Auto-scroll
+                onChar(index);
+                index++;
+
+                // Calculate delay (Hacker feel: random variations)
+                let delay = this.baseDelay / this.speed;
+
+                // Randomize slightly for realism
+                delay += Math.random() * 30;
+
+                // Pause longer on newlines
+                if (code[index - 1] === '\n') delay += 100;
+
+                const timeoutId = setTimeout(typeNext, delay);
+                this.timeouts.push(timeoutId);
+            } else {
+                onComplete();
+            }
+        };
+
+        // Start typing
+        typeNext();
+    }
+
+    stop() {
+        this.timeouts.forEach(clearTimeout);
+        this.timeouts = [];
+        this.isPaused = false;
+    }
+}

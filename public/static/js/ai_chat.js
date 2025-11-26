@@ -1,21 +1,25 @@
 /**
  * ai_chat.js
  * Unified Controller for AI Chat System.
- * Manages UI, State, and routing between Local and API modes.
+ * Supports:
+ * 1. API Mode (OpenAI/Groq)
+ * 2. Local Offline Mode (DistilGPT2 via Transformers.js)
+ * 3. Local GGUF Mode (Wllama)
  */
 
-import { LocalAI } from "./ai_local.js";
+import { LocalOfflineAdapter, LLM_GGUF_Adapter } from "./llm_local_adapter.js";
 import { ApiAI } from "./ai_api.js";
-import { CpuAI } from "./ai_cpu.js";
+import { SemanticSearch } from "./semantic_search.js";
 
 export class AIChat {
     constructor() {
-        this.localAI = new LocalAI();
-        this.apiAI = new ApiAI();
-        this.cpuAI = new CpuAI();
+        this.offlineAI = new LocalOfflineAdapter(); // Option B
+        this.ggufAI = new LLM_GGUF_Adapter();       // Option C
+        this.apiAI = new ApiAI();                   // Option A
+        this.semanticSearch = new SemanticSearch(); // Ultra-Fast Engine
 
         this.state = {
-            mode: localStorage.getItem("python_tutor_chat_mode") || "api", // 'local', 'cpu', 'api', 'model'
+            mode: localStorage.getItem("python_tutor_chat_mode") || "api",
             provider: localStorage.getItem("python_tutor_provider") || "openai",
             apiKey: localStorage.getItem("python_tutor_chat_api_key") || "",
             model: localStorage.getItem("python_tutor_model") || "",
@@ -28,7 +32,6 @@ export class AIChat {
             chatInput: document.getElementById("chat-input"),
             sendBtn: document.getElementById("send-chat"),
             settingsBtn: document.getElementById("ai-settings-btn"),
-            sidebarSettingsBtn: document.getElementById("sidebar-settings-btn"),
             modeBadge: document.getElementById("ai-mode-badge"),
             modal: document.getElementById("ai-settings-modal")
         };
@@ -38,38 +41,146 @@ export class AIChat {
 
     async init() {
         this.renderHistory();
-        this.updateUI();
         this.attachEventListeners();
+        this.attachMobileListeners();
 
-        // Auto-Detection Logic (Prompt 10)
-        // Only run if mode hasn't been explicitly set by user preference, or if we want to enforce capabilities
-        const savedMode = localStorage.getItem("python_tutor_chat_mode");
+        // Ensure mode is valid
+        if (!['api', 'local-offline', 'local-gguf'].includes(this.state.mode)) {
+            this.state.mode = 'api';
+        }
+        this.setMode(this.state.mode);
 
-        if (!savedMode) {
-            if (navigator.gpu) {
-                console.log("WebGPU detected. Defaulting to Local Mode.");
-                this.setMode("local");
+        // Init Semantic Search (Background)
+        this.semanticSearch.init().catch(e => console.error("Semantic Search Init Failed:", e));
+
+        console.log(`AI Chat Initialized. Mode: ${this.state.mode}`);
+    }
+
+    // ...
+
+    async sendMessageUnified() {
+        const text = this.elements.chatInput.value.trim();
+        if (!text) return;
+
+        this.elements.chatInput.value = "";
+        this.addMessage("user", text);
+
+        // Placeholder
+        const aiMsgDiv = document.createElement("div");
+        aiMsgDiv.className = "chat-message assistant";
+        aiMsgDiv.innerHTML = `<div class="typing-indicator"><span>.</span><span>.</span><span>.</span></div>`;
+        this.elements.chatHistory.appendChild(aiMsgDiv);
+        this.elements.chatHistory.scrollTop = this.elements.chatHistory.scrollHeight;
+
+        // 0. Check Semantic Search (Ultra-Fast Engine)
+        try {
+            const searchResult = await this.semanticSearch.search(text);
+            if (searchResult && searchResult.type === 'exact') {
+                await new Promise(r => setTimeout(r, 400)); // Tiny delay for realism
+                aiMsgDiv.innerHTML = marked.parse(searchResult.content);
+                this.state.history.push({ role: "assistant", content: searchResult.content });
+                this.saveSettings();
+                return;
+            }
+            // If category match, we could prepend context, but for now let's fall through
+        } catch (e) {
+            console.error("Semantic Search Error:", e);
+        }
+
+        // 1. Check Static Intents (Hybrid System) - Fallback if Semantic Search fails or is loading
+        const staticResponse = this.checkStaticIntents(text);
+        if (staticResponse) {
+            // Simulate tiny delay for realism
+            await new Promise(r => setTimeout(r, 600));
+            aiMsgDiv.innerHTML = marked.parse(staticResponse);
+            this.state.history.push({ role: "assistant", content: staticResponse });
+            this.saveSettings();
+            return;
+        }
+
+        let responseText = "";
+        const context = this.getSystemContext();
+        console.log("Sending to AI with context length:", context.length);
+
+        try {
+            if (this.state.mode === "local-offline") {
+                // Mode 2: Offline DistilGPT2
+                if (!this.offlineAI.status.loaded) {
+                    aiMsgDiv.innerText = "⏳ Cargando modelo offline (DistilGPT2)...";
+                    await this.offlineAI.loadModel({
+                        onProgress: (d) => aiMsgDiv.innerText = `⏳ Cargando: ${Math.round(d.progress)}%`
+                    });
+                }
+                aiMsgDiv.innerText = "";
+                // Pass context as second argument
+                const res = await this.offlineAI.sendMessage(this.state.history, context);
+                responseText = res.text;
+
+            } else if (this.state.mode === "local-gguf") {
+                // Mode 3: GGUF
+                if (!this.ggufAI.status.loaded) {
+                    aiMsgDiv.innerText = "🚀 Iniciando Auto-Carga de SmolLM...";
+                    // Auto-load SmolLM if not ready
+                    const url = "https://huggingface.co/bartowski/SmolLM2-135M-Instruct-GGUF/resolve/main/SmolLM2-135M-Instruct-Q4_K_M.gguf";
+                    await this.ggufAI.loadModel(url, {
+                        onProgress: (d) => {
+                            if (d.status === 'downloading') {
+                                aiMsgDiv.innerText = `⬇️ Descargando IA: ${Math.round(d.progress)}%`;
+                            } else {
+                                aiMsgDiv.innerText = `⚙️ Iniciando motor: ${Math.round(d.progress)}%`;
+                            }
+                        }
+                    });
+                }
+                aiMsgDiv.innerText = "";
+                console.log("Calling GGUF sendMessage...");
+                // Pass context as second argument
+                const res = await this.ggufAI.sendMessage(this.state.history, context, {
+                    onToken: (t) => {
+                        aiMsgDiv.innerText += t;
+                        this.elements.chatHistory.scrollTop = this.elements.chatHistory.scrollHeight;
+                    }
+                });
+                console.log("GGUF Response received");
+                responseText = res.text;
+
             } else {
-                console.log("WebGPU NOT detected. Defaulting to Lite (CPU) Mode.");
-                this.setMode("cpu");
-                this.addSystemMessage("⚠️ WebGPU no detectado. Activando Modo Lite (CPU).");
+                // Mode 1: API
+                if (!this.state.apiKey) throw new Error("Falta API Key");
+
+                aiMsgDiv.innerText = "";
+                responseText = await this.apiAI.sendMessageAPIModel(
+                    this.state.history,
+                    {
+                        provider: this.state.provider,
+                        apiKey: this.state.apiKey,
+                        model: this.state.model,
+                        modelUrl: this.state.modelUrl
+                    },
+                    (chunk) => {
+                        aiMsgDiv.innerText += chunk;
+                        this.elements.chatHistory.scrollTop = this.elements.chatHistory.scrollHeight;
+                    }
+                );
             }
-        } else {
-            // Validate saved mode against capabilities
-            if (savedMode === "local" && !navigator.gpu) {
-                this.setMode("cpu");
-                this.addSystemMessage("⚠️ WebGPU no disponible. Cambiando a Modo Lite.");
+
+            // Save final response
+            this.state.history.push({ role: "assistant", content: responseText || aiMsgDiv.innerText });
+            this.saveSettings();
+
+            // If streaming wasn't used to populate div (e.g. offline mode non-streaming)
+            if (!aiMsgDiv.innerText && responseText) {
+                aiMsgDiv.innerText = responseText;
             }
+
+        } catch (err) {
+            console.error(err);
+            aiMsgDiv.innerHTML = `<span style="color:var(--neon-alert)">❌ Error: ${err.message}</span>`;
         }
     }
 
-    setMode(mode) {
-        this.state.mode = mode;
-        localStorage.setItem("python_tutor_chat_mode", mode);
-        this.updateUI();
-    }
-
     saveSettings() {
+        localStorage.setItem("python_tutor_chat_mode", this.state.mode);
         localStorage.setItem("python_tutor_provider", this.state.provider);
         localStorage.setItem("python_tutor_chat_api_key", this.state.apiKey);
         localStorage.setItem("python_tutor_model", this.state.model);
@@ -77,12 +188,10 @@ export class AIChat {
         localStorage.setItem("python_tutor_chat_history", JSON.stringify(this.state.history));
     }
 
-    updateUI() {
-        if (this.elements.modeBadge) {
-            const labels = { api: "NUBE", local: "LOCAL", model: "CUSTOM" };
-            this.elements.modeBadge.innerText = labels[this.state.mode] || "API";
-            this.elements.modeBadge.style.background = this.state.mode === "local" ? "#238636" : "#1f6feb";
-        }
+    setMode(mode) {
+        this.state.mode = mode;
+        this.saveSettings();
+        // Update UI if needed (badges, etc)
     }
 
     addMessage(role, content) {
@@ -91,37 +200,150 @@ export class AIChat {
         this.renderMessage(role, content);
     }
 
-    addSystemMessage(content) {
-        const msgDiv = document.createElement("div");
-        msgDiv.className = "message system";
-        msgDiv.innerText = content;
-        this.elements.chatHistory.appendChild(msgDiv);
-        this.elements.chatHistory.scrollTop = this.elements.chatHistory.scrollHeight;
+    clearHistory() {
+        this.state.history = [];
+        this.saveSettings();
+        this.renderHistory();
+    }
+
+    renderHistory() {
+        if (!this.elements.chatHistory) return;
+        this.elements.chatHistory.innerHTML = "";
+        this.state.history.forEach(msg => this.renderMessage(msg.role, msg.content));
     }
 
     renderMessage(role, content) {
+        if (!this.elements.chatHistory) return;
         const msgDiv = document.createElement("div");
-        msgDiv.className = `message ${role}`;
+        msgDiv.className = `chat-message ${role}`;
 
-        if (role === "ai") {
-            const rawHtml = window.marked ? window.marked.parse(content) : content;
-            msgDiv.innerHTML = window.DOMPurify ? window.DOMPurify.sanitize(rawHtml) : rawHtml;
+        // Basic formatting
+        if (content.includes("```")) {
+            const parts = content.split("```");
+            parts.forEach((part, i) => {
+                if (i % 2 === 1) {
+                    const pre = document.createElement("pre");
+                    pre.innerText = part;
+                    msgDiv.appendChild(pre);
+                } else {
+                    const span = document.createElement("span");
+                    span.innerText = part;
+                    msgDiv.appendChild(span);
+                }
+            });
         } else {
             msgDiv.innerText = content;
         }
 
         this.elements.chatHistory.appendChild(msgDiv);
         this.elements.chatHistory.scrollTop = this.elements.chatHistory.scrollHeight;
-        return msgDiv;
     }
 
-    renderHistory() {
-        this.elements.chatHistory.innerHTML = "";
-        // Welcome message if empty
+    showWelcomeMessage() {
         if (this.state.history.length === 0) {
-            this.addSystemMessage("¡Hola! Soy tu tutor de Python. Configúrame en los ajustes y pregúntame lo que quieras.");
+            this.addMessage("system", "Sistema AI Online. Listo para ayudarte con Python.");
         }
-        this.state.history.forEach(msg => this.renderMessage(msg.role, msg.content));
+    }
+
+    findRelevantLesson(text) {
+        if (!window.allModules) return null;
+        const t = text.toLowerCase();
+
+        // 1. Search by ID (e.g., "Exercise 5", "Lesson 10")
+        const idMatch = t.match(/(?:exercise|lesson|ejercicio|leccion|lección)\s+(\d+)/);
+        if (idMatch) {
+            const id = parseInt(idMatch[1]);
+            for (const mod of window.allModules) {
+                const lesson = mod.lessons.find(l => l.id === id);
+                if (lesson) return lesson;
+            }
+        }
+
+        // 2. Search by Title (Keywords)
+        // Only if text is long enough to be a valid search
+        if (t.length > 4) {
+            for (const mod of window.allModules) {
+                for (const lesson of mod.lessons) {
+                    if (t.includes(lesson.title.toLowerCase())) {
+                        return lesson;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    getSystemContext() {
+        const titleEl = document.getElementById("lesson-title");
+        const editorEl = document.getElementById("code-editor");
+
+        let context = "";
+
+        // 1. Basic Info
+        if (titleEl) context += `Current Exercise: ${titleEl.innerText}\n`;
+
+        // 2. Full Lesson Knowledge (Current)
+        if (window.currentLesson) {
+            const l = window.currentLesson;
+            context += `\n--- CURRENT LESSON ---\n`;
+            if (l.content) context += `Content: ${l.content}\n`;
+            if (l.exercise_prompt) context += `Goal: ${l.exercise_prompt}\n`;
+            if (l.hint) context += `Hint: ${l.hint}\n`;
+            if (l.example_code) context += `Example Code:\n\`\`\`python\n${l.example_code}\n\`\`\`\n`;
+            context += `--- END CURRENT LESSON ---\n`;
+        }
+
+        // 3. Smart Retrieval (Referenced Lesson)
+        const userInput = this.elements.chatInput.value; // Get input before it's cleared
+        const referencedLesson = this.findRelevantLesson(userInput);
+        if (referencedLesson && referencedLesson !== window.currentLesson) {
+            context += `\n--- REFERENCED LESSON (User asked about this) ---\n`;
+            context += `Title: ${referencedLesson.title}\n`;
+            if (referencedLesson.content) context += `Content: ${referencedLesson.content}\n`;
+            if (referencedLesson.exercise_prompt) context += `Goal: ${referencedLesson.exercise_prompt}\n`;
+            if (referencedLesson.example_code) context += `Code:\n\`\`\`python\n${referencedLesson.example_code}\n\`\`\`\n`;
+            context += `--- END REFERENCED LESSON ---\n`;
+        }
+
+        // 4. User's Current Code
+        if (editorEl) context += `\nUser Code:\n\`\`\`python\n${editorEl.value}\n\`\`\`\n`;
+
+        return context;
+    }
+
+    checkStaticIntents(text) {
+        // Normalize: lowercase, remove punctuation, trim
+        const t = text.toLowerCase().replace(/[.,!¡?¿]/g, "").trim();
+
+        // Greetings (Relaxed - includes)
+        if (t.includes("hola") || t.includes("buenos dias") || t === "hi" || t === "hello") {
+            return "¡Hola! Soy tu tutor de Python. Veo que estás en el ejercicio de **" + (window.currentLesson ? window.currentLesson.title : "Introducción") + "**. ¿En qué puedo ayudarte?";
+        }
+
+        // Help / What to do (Direct Knowledge Retrieval)
+        // Expanded to catch "resumirme", "trata", "consiste", "objetivo", "resume", "resumen", "para que sirve"
+        if (t.match(/(ayuda|que hago|que tengo que hacer|no entiendo|explicame|explícame|que hay que hacer|de que va|resumirme|trata|consiste|objetivo|resume|resumen|para que sirve|para que es|que es esto)/)) {
+            if (window.currentLesson) {
+                let hint = window.currentLesson.hint;
+                // Filter generic/useless hints
+                if (!hint || hint.includes("repositorio oficial")) {
+                    hint = "Revisa el código en el editor para entender la lógica.";
+                }
+
+                let response = `### 📘 Objetivo del Ejercicio\n\n${window.currentLesson.exercise_prompt}\n\n### 💡 Pista\n\n${hint}\n\n`;
+
+                // Add Code Preview for context
+                if (window.currentLesson.example_code) {
+                    response += `### 💻 Código\n\`\`\`python\n${window.currentLesson.example_code.substring(0, 200)}${window.currentLesson.example_code.length > 200 ? "..." : ""}\n\`\`\`\n`;
+                }
+
+                response += `\n*(Información oficial del curso)*`;
+                return response;
+            }
+            return "Abre un ejercicio del menú de la izquierda y te explicaré qué hacer.";
+        }
+
+        return null; // No static match, proceed to AI
     }
 
     async sendMessageUnified() {
@@ -131,292 +353,331 @@ export class AIChat {
         this.elements.chatInput.value = "";
         this.addMessage("user", text);
 
-        // Create placeholder for AI response
-        const aiMsgDiv = this.renderMessage("ai", "...");
-        const typingIndicator = `<div class="typing-indicator"><span></span><span></span><span></span></div>`;
-        aiMsgDiv.innerHTML = typingIndicator;
+        // Placeholder
+        const aiMsgDiv = document.createElement("div");
+        aiMsgDiv.className = "chat-message assistant";
+        aiMsgDiv.innerHTML = `<div class="typing-indicator"><span>.</span><span>.</span><span>.</span></div>`;
+        this.elements.chatHistory.appendChild(aiMsgDiv);
+        this.elements.chatHistory.scrollTop = this.elements.chatHistory.scrollHeight;
 
-        let fullResponse = "";
-        const onChunk = (chunk) => {
-            fullResponse += chunk;
-            const rawHtml = window.marked ? window.marked.parse(fullResponse) : fullResponse;
-            aiMsgDiv.innerHTML = window.DOMPurify ? window.DOMPurify.sanitize(rawHtml) : rawHtml;
-            this.elements.chatHistory.scrollTop = this.elements.chatHistory.scrollHeight;
-        };
+        // 1. Check Static Intents (Hybrid System)
+        const staticResponse = this.checkStaticIntents(text);
+        if (staticResponse) {
+            // Simulate tiny delay for realism
+            await new Promise(r => setTimeout(r, 600));
+            aiMsgDiv.innerHTML = marked.parse(staticResponse);
+            this.state.history.push({ role: "assistant", content: staticResponse });
+            this.saveSettings();
+            return;
+        }
+
+        let responseText = "";
+        const context = this.getSystemContext();
+        console.log("Sending to AI with context length:", context.length);
 
         try {
-            if (this.state.mode === "local") {
-                // Check GPU again just in case
-                const hasGPU = await this.localAI.checkWebGPUSupport();
-                if (!hasGPU) throw new Error("WebGPU no disponible. Cambia a modo API.");
-
-                // Init if needed
-                if (!this.localAI.isLoaded) {
-                    aiMsgDiv.innerText = "⏳ Cargando modelo local (esto puede tardar)...";
-                    await this.localAI.init((text, progress) => {
-                        aiMsgDiv.innerText = `⏳ Cargando: ${Math.round(progress * 100)}%`;
+            if (this.state.mode === "local-offline") {
+                // Mode 2: Offline DistilGPT2
+                if (!this.offlineAI.status.loaded) {
+                    aiMsgDiv.innerText = "⏳ Cargando modelo offline (DistilGPT2)...";
+                    await this.offlineAI.loadModel({
+                        onProgress: (d) => aiMsgDiv.innerText = `⏳ Cargando: ${Math.round(d.progress)}%`
                     });
-                    aiMsgDiv.innerHTML = typingIndicator;
                 }
+                aiMsgDiv.innerText = "";
+                // Pass context as second argument
+                const res = await this.offlineAI.sendMessage(this.state.history, context);
+                responseText = res.text;
 
-                const messages = [
-                    { role: "system", content: "Eres un tutor de Python útil y conciso." },
-                    ...this.state.history.slice(-10) // Keep context small for local
-                ];
+            } else if (this.state.mode === "local-gguf") {
+                // Mode 3: GGUF
+                if (!this.ggufAI.status.loaded) {
+                    aiMsgDiv.innerText = "🚀 Iniciando Auto-Carga de SmolLM...";
+                    // Auto-load SmolLM if not ready
+                    const url = "https://huggingface.co/bartowski/SmolLM2-135M-Instruct-GGUF/resolve/main/SmolLM2-135M-Instruct-Q4_K_M.gguf";
+                    await this.ggufAI.loadModel(url, {
+                        onProgress: (d) => {
+                            if (d.status === 'downloading') {
+                                aiMsgDiv.innerText = `⬇️ Descargando IA: ${Math.round(d.progress)}%`;
+                            } else {
+                                aiMsgDiv.innerText = `⚙️ Iniciando motor: ${Math.round(d.progress)}%`;
+                            }
+                        }
+                    });
+                }
+                aiMsgDiv.innerText = "";
+                console.log("Calling GGUF sendMessage...");
+                // Pass context as second argument
+                const res = await this.ggufAI.sendMessage(this.state.history, context, {
+                    onToken: (t) => {
+                        aiMsgDiv.innerText += t;
+                        this.elements.chatHistory.scrollTop = this.elements.chatHistory.scrollHeight;
+                    }
+                });
+                console.log("GGUF Response received");
+                responseText = res.text;
 
-                await this.localAI.sendMessageLocalModel(messages, onChunk);
+            } else {
+                // Mode 1: API
+                if (!this.state.apiKey) throw new Error("Falta API Key");
 
-            } else if (this.state.mode === "api") {
-                const config = {
-                    provider: this.state.provider,
-                    apiKey: this.state.apiKey,
-                    model: this.state.model
-                };
-
-                const messages = [
-                    { role: "system", content: "Eres un tutor de Python útil y conciso." },
-                    ...this.state.history
-                ];
-
-                fullResponse = await this.apiAI.sendMessageAPIModel(messages, config, onChunk);
-
-            } else if (this.state.mode === "model") {
-                const config = {
-                    provider: "custom",
-                    modelUrl: this.state.modelUrl
-                };
-                const messages = [
-                    { role: "system", content: "Eres un tutor de Python útil y conciso." },
-                    ...this.state.history
-                ];
-                fullResponse = await this.apiAI.sendMessageAPIModel(messages, config, onChunk);
+                aiMsgDiv.innerText = "";
+                responseText = await this.apiAI.sendMessageAPIModel(
+                    this.state.history,
+                    {
+                        provider: this.state.provider,
+                        apiKey: this.state.apiKey,
+                        model: this.state.model,
+                        modelUrl: this.state.modelUrl
+                    },
+                    (chunk) => {
+                        aiMsgDiv.innerText += chunk;
+                        this.elements.chatHistory.scrollTop = this.elements.chatHistory.scrollHeight;
+                    }
+                );
             }
 
             // Save final response
-            this.state.history.push({ role: "ai", content: fullResponse });
+            this.state.history.push({ role: "assistant", content: responseText || aiMsgDiv.innerText });
             this.saveSettings();
 
-        } catch (error) {
-            console.error("Chat Error:", error);
-            aiMsgDiv.className = "message error";
-            aiMsgDiv.innerText = `❌ Error: ${error.message}`;
-
-            // Auto-fallback trigger on specific errors?
-            if (this.state.mode === "local" && error.message.includes("WebGPU")) {
-                this.setMode("api");
-                this.addSystemMessage("⚠️ Fallo en modo Local. Cambiando a modo API.");
+            // If streaming wasn't used to populate div (e.g. offline mode non-streaming)
+            if (!aiMsgDiv.innerText && responseText) {
+                aiMsgDiv.innerText = responseText;
             }
+
+        } catch (err) {
+            console.error(err);
+            aiMsgDiv.innerHTML = `<span style="color:var(--neon-alert)">❌ Error: ${err.message}</span>`;
+            // Do NOT add errors to history to prevent context pollution
+            // this.state.history.push({ role: "assistant", content: `Error: ${err.message}` });
         }
     }
 
+    // --- UI Helpers ---
+
     attachEventListeners() {
-        this.elements.sendBtn.addEventListener("click", () => this.sendMessageUnified());
+        if (this.elements.sendBtn) {
+            this.elements.sendBtn.onclick = () => this.sendMessageUnified();
+        }
+        if (this.elements.chatInput) {
+            this.elements.chatInput.onkeypress = (e) => {
+                if (e.key === "Enter") this.sendMessageUnified();
+            };
+        }
 
-        // Auto-resize and Enter key
-        this.elements.chatInput.addEventListener("input", () => {
-            this.elements.chatInput.style.height = "auto";
-            this.elements.chatInput.style.height = (this.elements.chatInput.scrollHeight) + "px";
-        });
-
-        this.elements.chatInput.addEventListener("keypress", (e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                this.sendMessageUnified();
+        // Global click for settings
+        document.body.addEventListener("click", (e) => {
+            const btn = e.target.closest("#ai-settings-btn");
+            if (btn) {
+                this.renderSettingsModal();
+                this.elements.modal.style.display = "flex";
             }
         });
+    }
 
-        // Settings Modal Logic
-        const openSettings = () => {
-            this.renderSettingsModal();
-            this.elements.modal.style.display = "flex";
-        };
+    attachMobileListeners() {
+        const btn = document.getElementById("mobile-ai-btn");
+        const panel = document.getElementById("ai-panel");
+        const closeBtn = panel ? panel.querySelector(".close-chat-btn") : null;
 
-        if (this.elements.settingsBtn) this.elements.settingsBtn.addEventListener("click", openSettings);
-        if (this.elements.sidebarSettingsBtn) this.elements.sidebarSettingsBtn.addEventListener("click", openSettings);
+        if (btn && panel) {
+            btn.onclick = () => panel.classList.toggle("active");
+        }
 
-        // Close Modal (Delegation or direct if elements exist)
-        this.elements.modal.addEventListener("click", (e) => {
-            if (e.target === this.elements.modal) this.elements.modal.style.display = "none";
-        });
+        if (closeBtn && panel) {
+            closeBtn.onclick = () => panel.classList.remove("active");
+        }
     }
 
     renderSettingsModal() {
         this.elements.modal.innerHTML = `
-            <div class="modal-content">
+            <div class="modal-content hacker-modal">
                 <div class="modal-header">
-                    <h3>Configuración de Chat</h3>
-                    <button id="close-ai-settings" class="icon-btn">✕</button>
+                    <h2>// SYSTEM_CONFIG</h2>
+                    <span id="close-ai-settings" class="close-modal">&times;</span>
                 </div>
                 <div class="modal-body">
-                    <!-- Mode Selection -->
-                    <div class="form-group">
-                        <label>Modo de Operación</label>
-                        <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-                            <label style="cursor: pointer; display: flex; align-items: center; gap: 8px; background: #21262d; padding: 8px 12px; border-radius: 6px; border: 1px solid #30363d;">
-                                <input type="radio" name="chat_mode" value="api" ${this.state.mode === 'api' ? 'checked' : ''}> 
-                                <span>☁️ API Key</span>
-                            </label>
-                            <label style="cursor: pointer; display: flex; align-items: center; gap: 8px; background: #21262d; padding: 8px 12px; border-radius: 6px; border: 1px solid #30363d;">
-                                <input type="radio" name="chat_mode" value="local" ${this.state.mode === 'local' ? 'checked' : ''}> 
-                                <span>💻 Local (WebGPU)</span>
-                            </label>
-                            <label style="cursor: pointer; display: flex; align-items: center; gap: 8px; background: #21262d; padding: 8px 12px; border-radius: 6px; border: 1px solid #30363d;">
-                                <input type="radio" name="chat_mode" value="model" ${this.state.mode === 'model' ? 'checked' : ''}> 
-                                <span>🌐 Remoto</span>
-                            </label>
+                    <div class="config-group">
+                        <label>MODO DE OPERACIÓN</label>
+                        <div class="mode-options">
+                            <div class="mode-option ${this.state.mode === 'api' ? 'active' : ''}" data-mode="api">
+                                <strong>API (Online)</strong>
+                            </div>
+                            <div class="mode-option ${this.state.mode === 'local-offline' ? 'active' : ''}" data-mode="local-offline">
+                                <strong>Local Offline (DistilGPT2)</strong>
+                            </div>
+                            <div class="mode-option ${this.state.mode === 'local-gguf' ? 'active' : ''}" data-mode="local-gguf">
+                                <strong>Local GGUF (Wllama)</strong>
+                            </div>
                         </div>
                     </div>
 
                     <!-- API Config -->
-                    <div id="api-config-group" style="display: ${this.state.mode === 'api' ? 'block' : 'none'};">
-                        <div class="form-group">
-                            <label>Proveedor</label>
-                            <select id="ai-provider-select">
-                                <option value="openai" ${this.state.provider === 'openai' ? 'selected' : ''}>OpenAI</option>
-                                <option value="groq" ${this.state.provider === 'groq' ? 'selected' : ''}>Groq (Llama 3)</option>
-                                <option value="deepseek" ${this.state.provider === 'deepseek' ? 'selected' : ''}>DeepSeek</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>API Key</label>
-                            <input type="password" id="ai-api-key" placeholder="sk-..." value="${this.state.apiKey}">
-                        </div>
-                        <div class="form-group">
-                            <label>Modelo (Opcional)</label>
-                            <input type="text" id="ai-model-name" placeholder="Ej: gpt-4o-mini" value="${this.state.model}">
-                        </div>
-                        <button id="test-api-connection" class="btn-secondary" style="width: 100%;">Probar Conexión</button>
+                    <div id="api-config" style="display:${this.state.mode === 'api' ? 'block' : 'none'}">
+                        <label>API KEY</label>
+                        <input type="password" id="ai-api-key" class="hud-input" value="${this.state.apiKey}">
+                        <label>PROVIDER</label>
+                        <select id="api-provider-select" class="hud-input">
+                            <option value="openai" ${this.state.provider === 'openai' ? 'selected' : ''}>OpenAI</option>
+                            <option value="groq" ${this.state.provider === 'groq' ? 'selected' : ''}>Groq</option>
+                        </select>
                     </div>
 
-                    <!-- Local Config -->
-                    <div id="local-config-group" style="display: ${this.state.mode === 'local' ? 'block' : 'none'};">
-                        <p style="font-size: 0.9em; color: #8b949e; margin-bottom: 10px; background: #0d1117; padding: 10px; border-radius: 6px;">
-                            ℹ️ Ejecuta <b>Qwen2.5-0.5B</b> en tu navegador. Requiere descarga inicial (~300MB).
-                        </p>
-                        <div style="background: #0d1117; padding: 10px; border-radius: 4px; border: 1px solid #30363d;">
-                            <div style="display: flex; justify-content: space-between; font-size: 0.85em; margin-bottom: 5px;">
-                                <span>Estado:</span>
-                                <span id="local-load-status" style="color: #2ea043;">${this.localAI.isLoaded ? 'Listo' : 'No cargado'}</span>
-                            </div>
-                            <div id="local-progress-bar" style="width: 100%; height: 4px; background: #30363d; border-radius: 2px; overflow: hidden;">
-                                <div id="local-progress-fill" style="width: ${this.localAI.isLoaded ? '100%' : '0%'}; height: 100%; background: #2ea043;"></div>
-                            </div>
+                    <!-- GGUF Config -->
+                    <div id="gguf-config" style="display:${this.state.mode === 'local-gguf' ? 'block' : 'none'}">
+                        <label>ARCHIVO GGUF</label>
+                        <input type="file" id="gguf-file-input" accept=".gguf" class="hud-input">
+                        
+                        <div style="margin-top: 10px; text-align: center;">
+                            <span style="font-size: 0.8em; color: var(--neon-blue);">O descarga automática:</span><br>
+                            <button id="download-qwen-btn" class="btn-secondary" style="width: 100%; margin-top: 5px;">
+                                ⬇️ Descargar Qwen 0.5B (Recomendado)
+                            </button>
+                            <button id="download-smollm-btn" class="btn-secondary" style="width: 100%; margin-top: 5px; border-color: var(--neon-green); color: var(--neon-green);">
+                                🚀 Descargar SmolLM (Ultra-Rápido)
+                            </button>
                         </div>
+
+                        <div id="gguf-status" style="color:var(--neon-green); margin-top: 10px; font-weight: bold;"></div>
                     </div>
 
-                    <!-- Remote Model Config -->
-                    <div id="model-config-group" style="display: ${this.state.mode === 'model' ? 'block' : 'none'};">
-                         <div class="form-group">
-                            <label>URL del Modelo</label>
-                            <input type="text" id="ai-model-url" placeholder="https://tu-servidor.com/v1/chat/completions" value="${this.state.modelUrl}">
-                        </div>
-                        <button id="test-model-connection" class="btn-secondary" style="width: 100%;">Probar Endpoint</button>
+                    <div class="modal-actions">
+                        <button id="clear-chat-history" class="btn-secondary" style="margin-right: auto; border: 1px solid var(--neon-alert); color: var(--neon-alert);">BORRAR HISTORIAL</button>
+                        <button id="save-ai-settings" class="btn-primary">GUARDAR</button>
                     </div>
-
-                    <div id="config-feedback" style="margin-top: 15px; font-size: 0.9em; min-height: 20px; text-align: center;"></div>
-                    
-                    <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #30363d;">
-                        <button id="clear-history-btn" class="btn-secondary" style="color: #ff7b72; border-color: #ff7b72; width: 100%;">🗑️ Borrar Historial</button>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button id="save-ai-settings" class="btn-primary">Guardar Cambios</button>
                 </div>
             </div>
         `;
 
-        // Re-attach listeners for the new modal content
-        this.attachModalListeners();
+        this.attachModalLogic();
     }
 
-    attachModalListeners() {
+    attachModalLogic() {
         // Close
-        document.getElementById("close-ai-settings").addEventListener("click", () => {
-            this.elements.modal.style.display = "none";
+        document.getElementById("close-ai-settings").onclick = () => this.elements.modal.style.display = "none";
+
+        // Mode Switch
+        const opts = this.elements.modal.querySelectorAll(".mode-option");
+        opts.forEach(opt => {
+            opt.onclick = () => {
+                opts.forEach(o => o.classList.remove("active"));
+                opt.classList.add("active");
+                const m = opt.getAttribute("data-mode");
+
+                document.getElementById("api-config").style.display = m === "api" ? "block" : "none";
+                document.getElementById("gguf-config").style.display = m === "local-gguf" ? "block" : "none";
+            };
         });
 
         // Save
-        document.getElementById("save-ai-settings").addEventListener("click", () => {
-            const rbs = document.getElementsByName("chat_mode");
-            for (const rb of rbs) {
-                if (rb.checked) this.state.mode = rb.value;
-            }
+        document.getElementById("save-ai-settings").onclick = () => {
+            const active = this.elements.modal.querySelector(".mode-option.active");
+            if (active) this.state.mode = active.getAttribute("data-mode");
 
-            const apiGroup = document.getElementById("api-config-group");
-            if (apiGroup) {
-                this.state.provider = document.getElementById("ai-provider-select").value;
-                this.state.apiKey = document.getElementById("ai-api-key").value;
-                this.state.model = document.getElementById("ai-model-name").value;
-            }
+            const key = document.getElementById("ai-api-key");
+            if (key) this.state.apiKey = key.value;
 
-            const modelGroup = document.getElementById("model-config-group");
-            if (modelGroup) {
-                this.state.modelUrl = document.getElementById("ai-model-url").value;
-            }
+            const prov = document.getElementById("api-provider-select");
+            if (prov) this.state.provider = prov.value;
 
             this.saveSettings();
-            this.setMode(this.state.mode);
             this.elements.modal.style.display = "none";
-
-            if (this.state.mode === "local") {
-                this.localAI.checkWebGPUSupport().then(supported => {
-                    if (!supported) {
-                        alert("Tu navegador no soporta WebGPU. Se usará modo API.");
-                        this.setMode("api");
-                    }
-                });
-            }
-        });
-
-        // Radio Toggle
-        const rbs = document.getElementsByName("chat_mode");
-        for (const rb of rbs) {
-            rb.addEventListener("change", (e) => this.toggleSettingsGroups(e.target.value));
-        }
+        };
 
         // Clear History
-        document.getElementById("clear-history-btn").addEventListener("click", () => {
-            if (confirm("¿Estás seguro de borrar todo el historial?")) {
-                this.state.history = [];
-                this.saveSettings();
-                this.renderHistory();
-                this.elements.modal.style.display = "none";
-            }
-        });
-
-        // Tests
-        const testApiBtn = document.getElementById("test-api-connection");
-        if (testApiBtn) testApiBtn.addEventListener("click", () => this.runTest("api"));
-
-        const testModelBtn = document.getElementById("test-model-connection");
-        if (testModelBtn) testModelBtn.addEventListener("click", () => this.runTest("model"));
-    }
-
-    async runTest(type) {
-        const feedback = document.getElementById("config-feedback");
-        feedback.innerText = "Probando...";
-        feedback.style.color = "#58a6ff";
-
-        try {
-            if (type === "api") {
-                const p = document.getElementById("ai-provider-select").value;
-                const k = document.getElementById("ai-api-key").value;
-                await this.apiAI.testConnection({ provider: p, apiKey: k });
-            } else {
-                const u = document.getElementById("ai-model-url").value;
-                await this.apiAI.testConnection({ provider: "custom", modelUrl: u });
-            }
-            feedback.innerText = "✅ Conexión Exitosa";
-            feedback.style.color = "#2ea043";
-        } catch (e) {
-            feedback.innerText = "❌ Error: " + e.message;
-            feedback.style.color = "#ff7b72";
+        const clearBtn = document.getElementById("clear-chat-history");
+        if (clearBtn) {
+            clearBtn.onclick = () => {
+                if (confirm("¿Estás seguro de borrar el historial?")) {
+                    this.clearHistory();
+                    this.elements.modal.style.display = "none";
+                }
+            };
         }
-    }
 
-    toggleSettingsGroups(mode) {
-        document.getElementById("api-config-group").style.display = mode === "api" ? "block" : "none";
-        document.getElementById("local-config-group").style.display = mode === "local" ? "block" : "none";
-        document.getElementById("model-config-group").style.display = mode === "model" ? "block" : "none";
+        // GGUF Loader
+        const fileIn = document.getElementById("gguf-file-input");
+        if (fileIn) {
+            fileIn.onchange = async (e) => {
+                const f = e.target.files[0];
+                if (f) {
+                    const status = document.getElementById("gguf-status");
+                    status.innerText = "Cargando...";
+                    try {
+                        await this.ggufAI.loadModel(f, {
+                            onProgress: (d) => status.innerText = `${Math.round(d.progress)}%`
+                        });
+                        status.innerText = "✅ Listo";
+                    } catch (err) {
+                        status.innerText = "❌ Error";
+                        console.error(err);
+                    }
+                }
+            };
+        }
+
+        // Auto Download Qwen
+        const dlBtn = document.getElementById("download-qwen-btn");
+        if (dlBtn) {
+            dlBtn.onclick = async () => {
+                const status = document.getElementById("gguf-status");
+                status.innerText = "Iniciando descarga...";
+                dlBtn.disabled = true;
+
+                // Qwen 0.5B Chat Q4_K_M URL (Verified)
+                const url = "https://huggingface.co/Elaine5/Qwen1.5-0.5B-Chat-Q4_K_M-GGUF/resolve/main/qwen1.5-0.5b-chat-q4_k_m.gguf";
+
+                try {
+                    await this.ggufAI.loadModel(url, {
+                        onProgress: (d) => {
+                            if (d.status === 'downloading') {
+                                status.innerText = `⬇️ Descargando: ${Math.round(d.progress)}%`;
+                            } else {
+                                status.innerText = `⚙️ Procesando: ${Math.round(d.progress)}%`;
+                            }
+                        }
+                    });
+                    status.innerText = "✅ Qwen Cargado y Listo!";
+                    dlBtn.disabled = false;
+                } catch (err) {
+                    status.innerText = "❌ Error en descarga";
+                    console.error(err);
+                    dlBtn.disabled = false;
+                }
+            };
+        }
+
+        // Auto Download SmolLM (Ultra-Fast)
+        const dlSmolBtn = document.getElementById("download-smollm-btn");
+        if (dlSmolBtn) {
+            dlSmolBtn.onclick = async () => {
+                const status = document.getElementById("gguf-status");
+                status.innerText = "Iniciando descarga SmolLM...";
+                dlSmolBtn.disabled = true;
+
+                // SmolLM2-135M-Instruct Q4_K_M URL (Verified - Bartowski)
+                // Approx 100MB
+                const url = "https://huggingface.co/bartowski/SmolLM2-135M-Instruct-GGUF/resolve/main/SmolLM2-135M-Instruct-Q4_K_M.gguf";
+
+                try {
+                    await this.ggufAI.loadModel(url, {
+                        onProgress: (d) => {
+                            if (d.status === 'downloading') {
+                                status.innerText = `⬇️ Descargando SmolLM: ${Math.round(d.progress)}%`;
+                            } else {
+                                status.innerText = `⚙️ Procesando: ${Math.round(d.progress)}%`;
+                            }
+                        }
+                    });
+                    status.innerText = "✅ SmolLM (Ultra-Fast) Listo!";
+                    dlSmolBtn.disabled = false;
+                } catch (err) {
+                    status.innerText = "❌ Error en descarga";
+                    console.error(err);
+                    dlSmolBtn.disabled = false;
+                }
+            };
+        }
     }
 }
