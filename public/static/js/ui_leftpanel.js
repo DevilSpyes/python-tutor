@@ -25,15 +25,27 @@ export class LeftPanel {
         const closeBtn = document.querySelector(".close-sidebar-btn");
         const sidebar = document.querySelector(".col-left");
         const centerCol = document.querySelector(".col-center");
+        const aiBtn = document.getElementById("mobile-ai-btn");
 
         if (mobileBtn && sidebar) {
             mobileBtn.addEventListener("click", () => {
                 sidebar.classList.toggle("active");
+                const isActive = sidebar.classList.contains("active");
+
+                if (isActive) {
+                    if (aiBtn) aiBtn.style.setProperty("display", "none", "important");
+                    mobileBtn.style.setProperty("display", "none", "important");
+                } else {
+                    if (aiBtn) aiBtn.style.removeProperty("display");
+                    mobileBtn.style.removeProperty("display");
+                }
             });
 
             if (closeBtn) {
                 closeBtn.addEventListener("click", () => {
                     sidebar.classList.remove("active");
+                    if (aiBtn) aiBtn.style.removeProperty("display");
+                    mobileBtn.style.removeProperty("display");
                 });
             }
 
@@ -42,6 +54,8 @@ export class LeftPanel {
                 centerCol.addEventListener("click", () => {
                     if (window.innerWidth <= 900 && sidebar.classList.contains("active")) {
                         sidebar.classList.remove("active");
+                        if (aiBtn) aiBtn.style.removeProperty("display");
+                        mobileBtn.style.removeProperty("display");
                     }
                 });
             }

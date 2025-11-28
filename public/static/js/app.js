@@ -1,6 +1,7 @@
 import { AIChat } from "./ai_chat.js";
 import { TypingSimulator } from "./typingSimulator.js";
 import { LeftPanel } from "./ui_leftpanel.js";
+import { TTSManager } from "./tts_manager.js"; // New Import
 
 // Global State
 let pyodide = null;
@@ -9,6 +10,8 @@ let allModules = [];
 let aiChat = null;
 let typingSim = null;
 let leftPanel = null;
+let ttsManager = null; // New State
+let isTyping = false;
 
 // DOM Elements
 let elements = {};
@@ -53,14 +56,94 @@ async function loadPyodide() {
     return p;
 }
 
+function installNetworkFirewall() {
+    const WHITELIST = [
+        "cdn.jsdelivr.net",
+        "pypi.org",
+        "files.pythonhosted.org",
+        "huggingface.co",
+        "api.openai.com",
+        "api.groq.com",
+        "api.deepseek.com",
+        "localhost",
+        "127.0.0.1",
+        "python-tutor-es.netlify.app",
+        "translate.google.com"
+    ];
+
+    const originalFetch = window.fetch;
+    window.fetch = async function (input, init) {
+        let url;
+        if (typeof input === 'string') {
+            url = input;
+        } else if (input instanceof URL) {
+            url = input.href;
+        } else if (input instanceof Request) {
+            url = input.url;
+        }
+
+        if (url) {
+            try {
+                const parsedUrl = new URL(url, window.location.origin);
+                const hostname = parsedUrl.hostname;
+
+                // Allow if hostname ends with any whitelisted domain (to cover subdomains)
+                const isAllowed = WHITELIST.some(domain =>
+                    hostname === domain || hostname.endsWith("." + domain)
+                );
+
+                // SECURITY: Internal Port Scanning Protection
+                // Only allow localhost on specific AI ports (Ollama: 11434, LM Studio: 1234, Dev: 8000/8080/5000)
+                if (hostname === "localhost" || hostname === "127.0.0.1") {
+                    const port = parsedUrl.port || (parsedUrl.protocol === 'https:' ? '443' : '80');
+                    const ALLOWED_PORTS = ['11434', '1234', '5000', '8000', '8080'];
+                    if (!ALLOWED_PORTS.includes(port)) {
+                        console.error(`🔥 FIREWALL BLOCKED LOCAL PORT: ${port}`);
+                        throw new Error(`SECURITY: Acceso a puerto local ${port} bloqueado. Solo se permiten puertos de IA (11434, 1234).`);
+                    }
+                }
+
+                if (!isAllowed) {
+                    console.error(`🔥 FIREWALL BLOCKED: ${url}`);
+                    throw new Error(`SECURITY: Conexión bloqueada a ${hostname}. Solo se permiten dominios de confianza.`);
+                }
+            } catch (e) {
+                if (e.message.startsWith("SECURITY")) throw e;
+            }
+        }
+        return originalFetch.apply(this, arguments);
+    };
+
+    console.log("🛡️ Network Firewall Active");
+}
+
 // --- Initialization ---
 async function init() {
     try {
+        // SECURITY: Install Network Firewall
+        installNetworkFirewall();
+
         setupDOMElements();
 
         // 1. Load Pyodide
         pyodide = await loadPyodide();
         console.log("Pyodide loaded");
+
+        // 1.1 Pre-load critical packages
+        logToTerminal("Instalando librerías (requests, micropip)...", "info");
+        await pyodide.loadPackage(["requests", "micropip"]);
+
+        // 1.2 Install PyPI packages
+        try {
+            const micropip = pyodide.pyimport("micropip");
+            logToTerminal("Instalando librerías gráficas (esto puede tardar)...", "info");
+            await micropip.install(["py-avataaars", "python-avatars", "svg-turtle", "colorama"]);
+        } catch (err) {
+            console.warn("Error installing PyPI packages:", err);
+            logToTerminal("Advertencia: Algunas librerías gráficas fallaron al instalar.", "info");
+        }
+
+        console.log("Packages loaded");
 
         // Enable Run Button
         const runBtn = document.getElementById("run-code");
@@ -75,6 +158,7 @@ async function init() {
         // 3. Initialize AI System
         aiChat = new AIChat();
         typingSim = new TypingSimulator();
+        ttsManager = new TTSManager(); // Initialize TTS
 
         // Trigger Initial AI Message
         setTimeout(() => {
@@ -149,6 +233,9 @@ function loadLesson(id) {
     // Expose for AI Context
     window.currentLesson = currentLesson;
 
+    // Auto-Stop TTS
+    if (ttsManager) ttsManager.stop();
+
     // Update UI
     document.querySelectorAll(".lesson-item").forEach(el => el.classList.remove("active"));
 
@@ -166,15 +253,17 @@ function loadLesson(id) {
     }
 
     // Start Typing Effect
-    // Disable run button while typing
-    elements.runBtn.disabled = true;
-    elements.runBtn.innerText = "TYPING...";
+    // Enable run button for skipping
+    isTyping = true;
+    elements.runBtn.disabled = false;
+    elements.runBtn.innerText = "⏩ SKIP";
 
     typingSim.typeCode(elements.editor, foundLesson.example_code, {
         onChar: () => {
             // Optional: Scroll to bottom or highlight
         },
         onComplete: () => {
+            isTyping = false;
             elements.runBtn.disabled = false;
             elements.runBtn.innerText = "EXECUTE_SCRIPT";
         }
@@ -188,6 +277,11 @@ function loadLesson(id) {
 
 // --- Code Execution ---
 async function runCode() {
+    if (isTyping) {
+        typingSim.finish();
+        return;
+    }
+
     const code = elements.editor.value;
     logToTerminal("Ejecutando...", "info");
 
@@ -201,12 +295,63 @@ async function runCode() {
     }
 }
 
+function ansiToHtml(text) {
+    if (!text) return text;
+
+    // Basic ANSI to HTML mapping
+    const colors = {
+        // Foreground
+        '30': 'black', '31': '#ff5555', '32': '#50fa7b', '33': '#f1fa8c',
+        '34': '#bd93f9', '35': '#ff79c6', '36': '#8be9fd', '37': 'white',
+        '90': 'gray', '91': '#ff6e6e', '92': '#69ff94', '93': '#ffffa5',
+        '94': '#d6acff', '95': '#ff92df', '96': '#a4ffff', '97': 'white',
+        // Background
+        '40': 'black', '41': '#ff5555', '42': '#50fa7b', '43': '#f1fa8c',
+        '44': '#bd93f9', '45': '#ff79c6', '46': '#8be9fd', '47': 'white'
+    };
+
+    // Escape HTML first
+    let html = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, ">");
+
+    // Regex for ANSI escape codes: \x1b[...m
+    // Capture all codes inside the brackets
+    html = html.replace(/\x1b\[([\d;]+)m/g, (match, codesStr) => {
+        const codes = codesStr.split(';');
+        let style = "";
+        let isReset = false;
+
+        codes.forEach(code => {
+            if (code === '0') isReset = true;
+            if (code === '1') style += "font-weight:bold;";
+
+            if (colors[code]) {
+                if (parseInt(code) >= 40 && parseInt(code) <= 47) {
+                    style += `background-color:${colors[code]};color:black;`; // Auto-contrast for bg
+                } else {
+                    style += `color:${colors[code]};`;
+                }
+            }
+        });
+
+        if (isReset) return '</span>';
+        return `<span style="${style}">`;
+    });
+
+    return html;
+}
+
 function logToTerminal(msg, type = "normal") {
     const div = document.createElement("div");
-    div.innerText = `> ${msg}`;
+
+    // Process ANSI codes
+    const formattedMsg = ansiToHtml(msg);
+
+    div.innerHTML = `> ${formattedMsg}`;
+
     if (type === "error") div.classList.add("log-error");
     if (type === "success") div.classList.add("log-success");
     if (type === "info") div.classList.add("log-info");
+
     elements.terminalBody.appendChild(div);
     elements.terminalBody.scrollTop = elements.terminalBody.scrollHeight;
 }

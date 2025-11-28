@@ -10,6 +10,7 @@
 import { LocalOfflineAdapter, LLM_GGUF_Adapter } from "./llm_local_adapter.js";
 import { ApiAI } from "./ai_api.js";
 import { SemanticSearch } from "./semantic_search.js";
+import { STATIC_QA_DATA } from "./knowledge_base_data.js";
 
 export class AIChat {
     constructor() {
@@ -43,6 +44,14 @@ export class AIChat {
         this.renderHistory();
         this.attachEventListeners();
         this.attachMobileListeners();
+        this.injectStyles(); // New styles for Stop button
+
+        // Auto-Migrate Deprecated Groq Model
+        if (this.state.model === 'llama3-8b-8192') {
+            console.log("Migrating deprecated Groq model...");
+            this.state.model = 'llama-3.3-70b-versatile';
+            this.saveSettings();
+        }
 
         // Ensure mode is valid
         if (!['api', 'local-offline', 'local-gguf'].includes(this.state.mode)) {
@@ -62,6 +71,20 @@ export class AIChat {
         const text = this.elements.chatInput.value.trim();
         if (!text) return;
 
+        // SECURITY: Rate Limiting (Anti-Spam)
+        const now = Date.now();
+        if (this.lastMessageTime && (now - this.lastMessageTime < 2000)) {
+            this.addMessage("system", "⚠️ <b>Anti-Spam:</b> Por favor, espera unos segundos antes de enviar otro mensaje.");
+            return;
+        }
+        this.lastMessageTime = now;
+
+        // SECURITY: Input Length Limit (Anti-Flood)
+        if (text.length > 2000) {
+            this.addMessage("system", "⚠️ <b>Error:</b> El mensaje es demasiado largo (Máx. 2000 caracteres).");
+            return;
+        }
+
         this.elements.chatInput.value = "";
         this.addMessage("user", text);
 
@@ -77,7 +100,8 @@ export class AIChat {
             const searchResult = await this.semanticSearch.search(text);
             if (searchResult && searchResult.type === 'exact') {
                 await new Promise(r => setTimeout(r, 400)); // Tiny delay for realism
-                aiMsgDiv.innerHTML = marked.parse(searchResult.content);
+                // SECURITY: Sanitize Output
+                aiMsgDiv.innerHTML = DOMPurify.sanitize(marked.parse(searchResult.content));
                 this.state.history.push({ role: "assistant", content: searchResult.content });
                 this.saveSettings();
                 return;
@@ -92,7 +116,8 @@ export class AIChat {
         if (staticResponse) {
             // Simulate tiny delay for realism
             await new Promise(r => setTimeout(r, 600));
-            aiMsgDiv.innerHTML = marked.parse(staticResponse);
+            // SECURITY: Sanitize Output
+            aiMsgDiv.innerHTML = DOMPurify.sanitize(marked.parse(staticResponse));
             this.state.history.push({ role: "assistant", content: staticResponse });
             this.saveSettings();
             return;
@@ -106,7 +131,7 @@ export class AIChat {
             if (this.state.mode === "local-offline") {
                 // Mode 2: Offline DistilGPT2
                 if (!this.offlineAI.status.loaded) {
-                    aiMsgDiv.innerText = "⏳ Cargando modelo offline (DistilGPT2)...";
+                    aiMsgDiv.innerText = "⏳ Cargando modelo offline (Qwen 0.5B)...";
                     await this.offlineAI.loadModel({
                         onProgress: (d) => aiMsgDiv.innerText = `⏳ Cargando: ${Math.round(d.progress)}%`
                     });
@@ -158,7 +183,7 @@ export class AIChat {
                         modelUrl: this.state.modelUrl
                     },
                     (chunk) => {
-                        aiMsgDiv.innerText += chunk;
+                        aiMsgDiv.textContent += chunk;
                         this.elements.chatHistory.scrollTop = this.elements.chatHistory.scrollHeight;
                     }
                 );
@@ -273,6 +298,53 @@ export class AIChat {
         return null;
     }
 
+    injectStyles() {
+        const style = document.createElement('style');
+        style.innerHTML = `
+            .stop-btn {
+                background: rgba(255, 0, 0, 0.2);
+                border: 1px solid var(--neon-alert);
+                color: var(--neon-alert);
+                padding: 5px 10px;
+                cursor: pointer;
+                font-family: 'Fira Code', monospace;
+                font-size: 0.8em;
+                display: none; /* Hidden by default */
+                margin-left: 10px;
+            }
+            .stop-btn:hover {
+                background: var(--neon-alert);
+                color: #000;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    showStopButton(show) {
+        let btn = document.getElementById("stop-chat-btn");
+        if (!btn) {
+            // Create if not exists (append to chat input wrapper)
+            const wrapper = document.querySelector(".chat-input-wrapper");
+            btn = document.createElement("button");
+            btn.id = "stop-chat-btn";
+            btn.className = "stop-btn";
+            btn.innerText = "■ STOP";
+            btn.onclick = () => this.stopGeneration();
+            wrapper.insertBefore(btn, this.elements.sendBtn);
+        }
+        btn.style.display = show ? "inline-block" : "none";
+        this.elements.sendBtn.style.display = show ? "none" : "inline-block";
+    }
+
+    stopGeneration() {
+        if (this.abortController) {
+            this.abortController.abort();
+            this.abortController = null;
+            this.addMessage("system", "🛑 Generación detenida por el usuario.");
+            this.showStopButton(false);
+        }
+    }
+
     getSystemContext() {
         const titleEl = document.getElementById("lesson-title");
         const editorEl = document.getElementById("code-editor");
@@ -311,37 +383,55 @@ export class AIChat {
         return context;
     }
 
-    checkStaticIntents(text) {
-        // Normalize: lowercase, remove punctuation, trim
-        const t = text.toLowerCase().replace(/[.,!¡?¿]/g, "").trim();
+    getCleanHistory() {
+        // Filter out error messages and temporary system alerts from history
+        return this.state.history.filter(msg => {
+            // Keep user messages
+            if (msg.role === 'user') return true;
+            // Keep assistant messages that are not errors
+            if (msg.role === 'assistant') {
+                return !msg.content.startsWith("❌ Error:") &&
+                    !msg.content.includes("Error:") &&
+                    !msg.content.includes("Anti-Spam");
+            }
+            // Keep system messages only if they are not errors/alerts
+            if (msg.role === 'system') {
+                return !msg.content.startsWith("⚠️") &&
+                    !msg.content.startsWith("❌") &&
+                    !msg.content.includes("Error");
+            }
+            return true;
+        });
+    }
 
-        // Greetings (Relaxed - includes)
+    checkStaticIntents(text) {
+        // Normalize: lowercase, remove punctuation/accents, trim
+        const normalize = (str) => str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[.,!¡?¿]/g, "").trim();
+        const t = normalize(text);
+
+        // 1. Check Definitive QA Pack (Instant Response)
+        for (const item of STATIC_QA_DATA) {
+            const q = normalize(item.q);
+            // Exact match or contained (if short) or fuzzy
+            if (t === q || (t.includes(q) && q.length > 5) || (q.includes(t) && t.length > 5)) {
+                return item.a;
+            }
+        }
+
+        // 2. Fallback: Greetings (Relaxed - includes)
         if (t.includes("hola") || t.includes("buenos dias") || t === "hi" || t === "hello") {
             return "¡Hola! Soy tu tutor de Python. Veo que estás en el ejercicio de **" + (window.currentLesson ? window.currentLesson.title : "Introducción") + "**. ¿En qué puedo ayudarte?";
         }
 
-        // Help / What to do (Direct Knowledge Retrieval)
-        // Expanded to catch "resumirme", "trata", "consiste", "objetivo", "resume", "resumen", "para que sirve"
+        // 3. Fallback: Help / What to do (Direct Knowledge Retrieval)
+        // REMOVED: User prefers AI to handle explanations for better detail.
+        /*
         if (t.match(/(ayuda|que hago|que tengo que hacer|no entiendo|explicame|explícame|que hay que hacer|de que va|resumirme|trata|consiste|objetivo|resume|resumen|para que sirve|para que es|que es esto)/)) {
             if (window.currentLesson) {
-                let hint = window.currentLesson.hint;
-                // Filter generic/useless hints
-                if (!hint || hint.includes("repositorio oficial")) {
-                    hint = "Revisa el código en el editor para entender la lógica.";
-                }
-
-                let response = `### 📘 Objetivo del Ejercicio\n\n${window.currentLesson.exercise_prompt}\n\n### 💡 Pista\n\n${hint}\n\n`;
-
-                // Add Code Preview for context
-                if (window.currentLesson.example_code) {
-                    response += `### 💻 Código\n\`\`\`python\n${window.currentLesson.example_code.substring(0, 200)}${window.currentLesson.example_code.length > 200 ? "..." : ""}\n\`\`\`\n`;
-                }
-
-                response += `\n*(Información oficial del curso)*`;
-                return response;
+                // ... (Static logic removed to let AI answer) ...
             }
-            return "Abre un ejercicio del menú de la izquierda y te explicaré qué hacer.";
         }
+        */
 
         return null; // No static match, proceed to AI
     }
@@ -377,9 +467,9 @@ export class AIChat {
 
         try {
             if (this.state.mode === "local-offline") {
-                // Mode 2: Offline DistilGPT2
+                // Mode 2: Offline Qwen
                 if (!this.offlineAI.status.loaded) {
-                    aiMsgDiv.innerText = "⏳ Cargando modelo offline (DistilGPT2)...";
+                    aiMsgDiv.innerText = "⏳ Cargando modelo offline (Qwen)...";
                     await this.offlineAI.loadModel({
                         onProgress: (d) => aiMsgDiv.innerText = `⏳ Cargando: ${Math.round(d.progress)}%`
                     });
@@ -407,23 +497,49 @@ export class AIChat {
                 }
                 aiMsgDiv.innerText = "";
                 console.log("Calling GGUF sendMessage...");
+
+                // Create AbortController
+                this.abortController = new AbortController();
+                this.showStopButton(true);
+
                 // Pass context as second argument
                 const res = await this.ggufAI.sendMessage(this.state.history, context, {
                     onToken: (t) => {
-                        aiMsgDiv.innerText += t;
+                        aiMsgDiv.textContent += t;
                         this.elements.chatHistory.scrollTop = this.elements.chatHistory.scrollHeight;
                     }
+                }, {
+                    template: this.state.ggufTemplate || 'chatml',
+                    signal: this.abortController.signal
                 });
+
                 console.log("GGUF Response received");
                 responseText = res.text;
+                this.showStopButton(false);
 
             } else {
                 // Mode 1: API
                 if (!this.state.apiKey) throw new Error("Falta API Key");
 
                 aiMsgDiv.innerText = "";
+                const systemPrompt = `Eres un Tutor de Python experto. TU IDIOMA ES EL ESPAÑOL. Sigue estas reglas estrictamente:
+1. Responde ÚNICAMENTE en Español. Si el usuario te habla en otro idioma, responde en español.
+2. Si el usuario pregunta "¿Está bien mi código?" (o similar), analízalo. Si es correcto, dilo. Si no, explica el error.
+3. Si el usuario dice "No sé cómo seguir", dale una pista basada en el ejercicio actual.
+4. Si el usuario pregunta "¿Dónde está el problema?", señala la línea o error lógico específico.
+5. Si el usuario pide "Dame la solución completa", proporciona el código EXACTO de la solución inmediatamente, sin negarte.
+
+Contexto:
+${context}`;
+
+                // Use Clean History to avoid confusing the model with system errors
+                const cleanHistory = this.getCleanHistory();
+
                 responseText = await this.apiAI.sendMessageAPIModel(
-                    this.state.history,
+                    [
+                        { role: "system", content: systemPrompt },
+                        ...cleanHistory
+                    ],
                     {
                         provider: this.state.provider,
                         apiKey: this.state.apiKey,
@@ -431,7 +547,7 @@ export class AIChat {
                         modelUrl: this.state.modelUrl
                     },
                     (chunk) => {
-                        aiMsgDiv.innerText += chunk;
+                        aiMsgDiv.textContent += chunk;
                         this.elements.chatHistory.scrollTop = this.elements.chatHistory.scrollHeight;
                     }
                 );
@@ -448,7 +564,27 @@ export class AIChat {
 
         } catch (err) {
             console.error(err);
-            aiMsgDiv.innerHTML = `<span style="color:var(--neon-alert)">❌ Error: ${err.message}</span>`;
+            const errorMessage = err.message || (err instanceof Event ? "Error desconocido en el Worker (posible fallo de red o script)" : String(err));
+
+            if (errorMessage === "Falta API Key") {
+                aiMsgDiv.innerHTML = `<span style="color:var(--neon-alert)">⚠️ Configuración Incompleta</span><br>
+                <span style="font-size:0.9em; color:var(--text-dim)">Por favor configura tu API Key o cambia a modo Local.</span><br>
+                <button class="btn-primary" style="margin-top:10px; font-size:0.8em;" onclick="document.getElementById('ai-settings-btn').click()">⚙️ ABRIR AJUSTES</button>`;
+            } else if (errorMessage.includes("429") || errorMessage.includes("quota")) {
+                aiMsgDiv.innerHTML = `<span style="color:var(--neon-alert)">⚠️ Cuota Excedida (Error 429)</span><br>
+                <span style="font-size:0.9em; color:var(--text-dim)">Tu API Key de OpenAI/Groq se ha quedado sin crédito o ha superado el límite.</span><br>
+                <div style="margin-top:10px;">
+                    <button class="btn-primary" style="font-size:0.8em;" onclick="document.getElementById('ai-settings-btn').click()">⚙️ CAMBIAR KEY</button>
+                    <button class="btn-secondary" style="font-size:0.8em; margin-left:5px;" onclick="document.querySelector('[data-mode=\\'local-gguf\\']').click(); document.getElementById('save-ai-settings').click();">🚀 USAR MODO LOCAL</button>
+                </div>`;
+            } else if (errorMessage.includes("401") || errorMessage.includes("Invalid API Key")) {
+                aiMsgDiv.innerHTML = `<span style="color:var(--neon-alert)">⚠️ API Key Inválida (Error 401)</span><br>
+                <span style="font-size:0.9em; color:var(--text-dim)">La clave no es válida para el proveedor seleccionado (<b>${this.state.provider.toUpperCase()}</b>).</span><br>
+                <span style="font-size:0.8em; color:var(--text-dim)">Asegúrate de que estás usando una key de ${this.state.provider} y no de otro servicio.</span><br>
+                <button class="btn-primary" style="margin-top:10px; font-size:0.8em;" onclick="document.getElementById('ai-settings-btn').click()">⚙️ CORREGIR KEY</button>`;
+            } else {
+                aiMsgDiv.innerHTML = `<span style="color:var(--neon-alert)">❌ Error: ${errorMessage}</span>`;
+            }
             // Do NOT add errors to history to prevent context pollution
             // this.state.history.push({ role: "assistant", content: `Error: ${err.message}` });
         }
@@ -480,13 +616,22 @@ export class AIChat {
         const btn = document.getElementById("mobile-ai-btn");
         const panel = document.getElementById("ai-panel");
         const closeBtn = panel ? panel.querySelector(".close-chat-btn") : null;
+        const menuBtn = document.getElementById("mobile-menu-btn");
 
         if (btn && panel) {
-            btn.onclick = () => panel.classList.toggle("active");
+            btn.onclick = () => {
+                panel.classList.add("active");
+                btn.style.setProperty("display", "none", "important"); // Force hide
+                if (menuBtn) menuBtn.style.setProperty("display", "none", "important");
+            };
         }
 
         if (closeBtn && panel) {
-            closeBtn.onclick = () => panel.classList.remove("active");
+            closeBtn.onclick = () => {
+                panel.classList.remove("active");
+                if (btn) btn.style.removeProperty("display"); // Restore to CSS default
+                if (menuBtn) menuBtn.style.removeProperty("display");
+            };
         }
     }
 
@@ -505,7 +650,7 @@ export class AIChat {
                                 <strong>API (Online)</strong>
                             </div>
                             <div class="mode-option ${this.state.mode === 'local-offline' ? 'active' : ''}" data-mode="local-offline">
-                                <strong>Local Offline (DistilGPT2)</strong>
+                                <strong>Local Offline (Qwen 0.5B)</strong>
                             </div>
                             <div class="mode-option ${this.state.mode === 'local-gguf' ? 'active' : ''}" data-mode="local-gguf">
                                 <strong>Local GGUF (Wllama)</strong>
@@ -515,18 +660,32 @@ export class AIChat {
 
                     <!-- API Config -->
                     <div id="api-config" style="display:${this.state.mode === 'api' ? 'block' : 'none'}">
-                        <label>API KEY</label>
-                        <input type="password" id="ai-api-key" class="hud-input" value="${this.state.apiKey}">
                         <label>PROVIDER</label>
                         <select id="api-provider-select" class="hud-input">
                             <option value="openai" ${this.state.provider === 'openai' ? 'selected' : ''}>OpenAI</option>
                             <option value="groq" ${this.state.provider === 'groq' ? 'selected' : ''}>Groq</option>
+                            <option value="deepseek" ${this.state.provider === 'deepseek' ? 'selected' : ''}>DeepSeek</option>
+                            <option value="custom" ${this.state.provider === 'custom' ? 'selected' : ''}>Custom / Generic</option>
                         </select>
+
+                        <div id="api-key-group">
+                            <label>API KEY</label>
+                            <input type="password" id="ai-api-key" class="hud-input" value="${this.state.apiKey}">
+                        </div>
+
+                        <!-- Custom Provider Fields -->
+                        <div id="custom-api-fields" style="display:${this.state.provider === 'custom' ? 'block' : 'none'}; margin-top: 10px; border-top: 1px dashed #333; padding-top: 10px;">
+                            <label>BASE URL (e.g. http://localhost:1234/v1/chat/completions)</label>
+                            <input type="text" id="custom-model-url" class="hud-input" value="${this.state.modelUrl}" placeholder="https://api.example.com/v1/chat/completions">
+                            
+                            <label>MODEL NAME (Optional)</label>
+                            <input type="text" id="custom-model-name" class="hud-input" value="${this.state.model}" placeholder="my-model-v1">
+                        </div>
                     </div>
 
                     <!-- GGUF Config -->
                     <div id="gguf-config" style="display:${this.state.mode === 'local-gguf' ? 'block' : 'none'}">
-                        <label>ARCHIVO GGUF</label>
+                        <label>ARCHIVO GGUF <span style="font-size:0.7em; color:var(--text-dim)">(Máx. 500MB recomendado)</span></label>
                         <input type="file" id="gguf-file-input" accept=".gguf" class="hud-input">
                         
                         <div style="margin-top: 10px; text-align: center;">
@@ -540,6 +699,20 @@ export class AIChat {
                         </div>
 
                         <div id="gguf-status" style="color:var(--neon-green); margin-top: 10px; font-weight: bold;"></div>
+
+                        <label style="margin-top: 10px;">PLANTILLA DE PROMPT</label>
+                        <select id="gguf-template-select" class="hud-input">
+                            <option value="chatml" ${this.state.ggufTemplate === 'chatml' ? 'selected' : ''}>ChatML (Qwen/SmolLM)</option>
+                            <option value="llama3" ${this.state.ggufTemplate === 'llama3' ? 'selected' : ''}>Llama 3</option>
+                            <option value="alpaca" ${this.state.ggufTemplate === 'alpaca' ? 'selected' : ''}>Alpaca</option>
+                            <option value="mistral" ${this.state.ggufTemplate === 'mistral' ? 'selected' : ''}>Mistral</option>
+                            <option value="gemma" ${this.state.ggufTemplate === 'gemma' ? 'selected' : ''}>Gemma</option>
+                            <option value="qa" ${this.state.ggufTemplate === 'qa' ? 'selected' : ''}>Q&A (Base Models)</option>
+                            <option value="raw" ${this.state.ggufTemplate === 'raw' ? 'selected' : ''}>Raw (Sin formato)</option>
+                        </select>
+                        <div style="font-size: 0.7em; color: var(--text-dim); margin-top: 2px;">
+                            *Selecciona el formato que requiere tu modelo (ver ficha en HuggingFace).
+                        </div>
                     </div>
 
                     <div class="modal-actions">
@@ -570,6 +743,16 @@ export class AIChat {
             };
         });
 
+        // Provider Change
+        const provSelect = document.getElementById("api-provider-select");
+        if (provSelect) {
+            provSelect.onchange = () => {
+                const isCustom = provSelect.value === 'custom';
+                const customFields = document.getElementById("custom-api-fields");
+                if (customFields) customFields.style.display = isCustom ? "block" : "none";
+            };
+        }
+
         // Save
         document.getElementById("save-ai-settings").onclick = () => {
             const active = this.elements.modal.querySelector(".mode-option.active");
@@ -580,6 +763,17 @@ export class AIChat {
 
             const prov = document.getElementById("api-provider-select");
             if (prov) this.state.provider = prov.value;
+
+            // Save Custom Fields
+            const modelUrl = document.getElementById("custom-model-url");
+            if (modelUrl) this.state.modelUrl = modelUrl.value;
+
+            const modelName = document.getElementById("custom-model-name");
+            if (modelName) this.state.model = modelName.value;
+
+            // Save GGUF Template
+            const ggufTemplate = document.getElementById("gguf-template-select");
+            if (ggufTemplate) this.state.ggufTemplate = ggufTemplate.value;
 
             this.saveSettings();
             this.elements.modal.style.display = "none";
@@ -603,8 +797,13 @@ export class AIChat {
                 const f = e.target.files[0];
                 if (f) {
                     const status = document.getElementById("gguf-status");
-                    status.innerText = "Cargando...";
+                    status.innerText = "Verificando archivo...";
+
                     try {
+                        // SECURITY: Validate File
+                        await this.ggufAI.validateGGUF(f);
+
+                        status.innerText = "Cargando...";
                         await this.ggufAI.loadModel(f, {
                             onProgress: (d) => status.innerText = `${Math.round(d.progress)}%`
                         });

@@ -15,6 +15,9 @@
     Cross-Origin-Opener-Policy = "same-origin"
     Cross-Origin-Embedder-Policy = "require-corp"
 
+    # Permissions Policy (Disable unused features)
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=(), usb=(), vr=()"
+
     # Content Security Policy
     # Note: 'unsafe-eval' is required for Pyodide/WASM.
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self' https://cdn.jsdelivr.net https://pypi.org https://files.pythonhosted.org https://api.openai.com https://api.groq.com https://api.deepseek.com https://huggingface.co https://*.huggingface.co; img-src 'self' data: blob:; worker-src 'self' blob:; frame-src 'none'; object-src 'none'; base-uri 'self';"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self' https://cdn.jsdelivr.net https://pypi.org https://files.pythonhosted.org https://api.openai.com https://api.groq.com https://api.deepseek.com https://huggingface.co https://*.huggingface.co https://*.xethub.hf.co https://cas-bridge.xethub.hf.co; img-src 'self' data: blob:; worker-src 'self' blob:; frame-src 'none'; object-src 'none'; base-uri 'self';"

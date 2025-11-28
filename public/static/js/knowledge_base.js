@@ -105,9 +105,15 @@ ${topic.code}
             });
         });
 
-        // Add specific common questions
-        knowledge.push({ q: "hola", a: "¡Hola! Soy tu asistente ultra-rápido. Pregúntame sobre Python.", topic: "greeting" });
-        knowledge.push({ q: "ayuda", a: "Puedo explicarte cualquier concepto de Python. Prueba: 'Explícame listas' o 'Ejemplo de for'.", topic: "help" });
+        // Add Definitive QA Pack (High Priority Static Intents)
+        STATIC_QA_DATA.forEach(item => {
+            knowledge.push({
+                q: item.q,
+                a: item.a,
+                topic: "static_qa",
+                type: "static" // Critical for Semantic Search to detect exact matches
+            });
+        });
 
         return knowledge;
     }

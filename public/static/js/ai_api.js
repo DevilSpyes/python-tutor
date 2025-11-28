@@ -8,12 +8,12 @@ export class ApiAI {
         this.endpoints = {
             openai: "https://api.openai.com/v1/chat/completions",
             groq: "https://api.groq.com/openai/v1/chat/completions",
-            deepseek: "https://api.deepseek.com/v1/chat/completions"
+            deepseek: "https://api.deepseek.com/chat/completions"
         };
 
         this.models = {
             openai: "gpt-4o",
-            groq: "llama3-8b-8192",
+            groq: "llama-3.3-70b-versatile",
             deepseek: "deepseek-chat"
         };
     }
@@ -32,9 +32,13 @@ export class ApiAI {
 
         // Custom Model Mode
         if (provider === 'custom') {
-            if (!modelUrl) throw new Error("Missing Model URL for custom provider.");
+            if (!modelUrl) throw new Error("Missing Base URL for custom provider.");
             endpoint = modelUrl;
-            // Custom models might not need a specific model name, but we send one just in case
+            // Ensure endpoint ends with /chat/completions if not present (heuristic)
+            if (!endpoint.endsWith('/chat/completions') && !endpoint.endsWith('/generate')) {
+                // Common convention, but let's trust the user input mostly. 
+                // Actually, let's just use what they gave.
+            }
             modelName = model || "custom-model";
         } else {
             if (!apiKey) throw new Error(`Missing API Key for ${provider}.`);
@@ -45,7 +49,7 @@ export class ApiAI {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "Authorization": apiKey ? `Bearer ${apiKey}` : undefined
+                    "Authorization": apiKey ? `Bearer ${apiKey.trim().replace(/[^\x00-\x7F]/g, "")}` : undefined
                 },
                 body: JSON.stringify({
                     model: modelName,
@@ -64,11 +68,13 @@ export class ApiAI {
 
             // Simulate streaming for UI consistency
             if (onChunk) {
-                // Split by words to simulate typing
-                const words = reply.split(" ");
-                for (const word of words) {
-                    onChunk(word + " ");
-                    await new Promise(r => setTimeout(r, 20)); // Tiny delay
+                // Split by characters for smoother typing and to preserve exact whitespace
+                const chars = reply.split("");
+                for (const char of chars) {
+                    onChunk(char);
+                    // Dynamic delay: faster for long text, slower for short
+                    const delay = reply.length > 500 ? 2 : 10;
+                    await new Promise(r => setTimeout(r, delay));
                 }
             }
 

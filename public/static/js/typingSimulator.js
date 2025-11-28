@@ -23,6 +23,11 @@ export class TypingSimulator {
         let index = 0;
         const totalChars = code.length;
 
+        // Store state for skipping
+        this.currentContainer = container;
+        this.currentCode = code;
+        this.currentOnComplete = onComplete;
+
         const typeNext = () => {
             if (this.isPaused) return;
 
@@ -45,12 +50,28 @@ export class TypingSimulator {
                 const timeoutId = setTimeout(typeNext, delay);
                 this.timeouts.push(timeoutId);
             } else {
+                this.cleanup();
                 onComplete();
             }
         };
 
         // Start typing
         typeNext();
+    }
+
+    finish() {
+        if (!this.currentCode) return;
+        this.stop();
+        this.currentContainer.value = this.currentCode;
+        this.currentContainer.scrollTop = this.currentContainer.scrollHeight;
+        if (this.currentOnComplete) this.currentOnComplete();
+        this.cleanup();
+    }
+
+    cleanup() {
+        this.currentContainer = null;
+        this.currentCode = null;
+        this.currentOnComplete = null;
     }
 
     stop() {

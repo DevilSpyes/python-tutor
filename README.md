@@ -104,9 +104,17 @@ Si deseas modificar el proyecto o ejecutarlo offline en tu máquina:
     │   ├── static/
     │   │   ├── css/        # Estilos
     │   │   ├── js/         # Lógica (app.js, ai_chat.js, llm_local_adapter.js)
+<<<<<<< HEAD
     │   │   └── lessons/    # Contenido del curso (JSON)
     ├── README.md           # Esta documentación
     └── ...
+=======
+    │   │   └── exercises_v2.json # Contenido del curso
+    ├── scripts/            # Scripts de utilidad (generadores, conversores)
+    ├── tests/              # Tests de lógica
+    ├── src/                # Código fuente Python (herramientas)
+    └── README.md           # Esta documentación
+>>>>>>> 2673176 (update)
     ```
 
 3.  **Iniciar Servidor:**
@@ -131,6 +139,15 @@ Nos tomamos tu seguridad muy en serio:
 
 ## 📜 Historial de Cambios (Changelog)
 
+<<<<<<< HEAD
+=======
+### [1.1.0] - 2025-11-28
+#### Added
+- **Native TTS**: Replaced heavy AI TTS with browser's native `SpeechSynthesis` for zero-latency reading.
+- **Network Fallback**: Added lightweight Google TTS fallback for devices without native voices.
+- **Project Cleanup**: Reorganized scripts into `scripts/` and tests into `tests/`. Removed unused assets.
+
+>>>>>>> 2673176 (update)
 ### [1.0.0] - 2025-11-23
 #### Added
 - **GGUF Support**: Added ability to load custom `.gguf` models locally using Wllama.
@@ -150,7 +167,14 @@ Nos tomamos tu seguridad muy en serio:
 
 ---
 
+<<<<<<< HEAD
 ## � Créditos
+=======
+## 🏆 Créditos y Autoría
+
+**Creador y Desarrollador Principal:**
+### 👨‍💻 Carlos Dominguez
+>>>>>>> 2673176 (update)
 
 **Proyecto:** PythonTutor-Web (Educational Open Source)
 
@@ -165,4 +189,8 @@ Agradecimientos especiales a:
 
 Este proyecto se distribuye bajo la licencia **MIT**. Eres libre de usarlo, modificarlo y compartirlo con fines educativos.
 
+<<<<<<< HEAD
 *¡Feliz Hacking Ético!* 🕵️‍♂️
+=======
+*¡Feliz Python Ético!* 🕵️‍♂️
+>>>>>>> 2673176 (update)

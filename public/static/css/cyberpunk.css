@@ -272,6 +272,12 @@ body {
     overflow-y: auto;
 }
 
+@media (max-width: 768px) {
+    .nav-section.expanded .nav-content {
+        max-height: calc(100vh - 150px);
+    }
+}
+
 /* --- Navigation Items --- */
 .module-group {
     margin-bottom: 10px;
@@ -346,7 +352,7 @@ body {
     /* Flexbox fix */
 }
 
-.terminal-body {
+#terminal-body {
     flex: 1;
     background: rgba(0, 0, 0, 0.8);
     border: 1px solid var(--hud-border);
@@ -354,9 +360,12 @@ body {
     font-family: var(--font-mono);
     font-size: 0.9rem;
     color: var(--text-main);
-    overflow-y: auto;
+    overflow-y: scroll;
+    /* Force scrollbar to be always visible/accessible */
     /* Internal scroll */
     white-space: pre-wrap;
+    min-height: 0;
+    /* Allow shrinking in flex container */
 }
 
 .editor-container {
@@ -644,54 +653,70 @@ body {
     word-wrap: break-word;
     overflow-wrap: break-word;
     word-break: break-word;
-    white-space: normal;
+    white-space: pre-wrap;
     box-sizing: border-box;
 }
 
-.hex-widget {
-    width: 30%;
-    height: 100%;
-    position: relative;
+/* --- Hex Widgets Container --- */
+.hex-widgets {
     display: flex;
+    justify-content: space-around;
     align-items: center;
-    justify-content: center;
+    width: 100%;
+    padding: 10px 0;
+    margin-bottom: 20px;
+    gap: 10px;
 }
 
-.hex-content {
-    width: 80px;
-    height: 90px;
-    background: rgba(0, 243, 255, 0.05);
-    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-    border: 1px solid var(--neon-cyan);
-    /* Clip-path hides border, need pseudo or SVG for real border */
-    display: flex;
-    align-items: center;
-    justify-content: center;
+/* --- Common Widget Styles --- */
+/* --- Common Widget Styles --- */
+.cyber-globe,
+.dragon-ball,
+.data-sphere {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
     position: relative;
+    overflow: hidden;
+    background: none !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
 }
 
-/* Hex Border Hack */
-.hex-content::before {
-    content: '';
+.cyber-globe img,
+.dragon-ball img,
+.data-sphere img {
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: var(--neon-cyan);
-    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-    z-index: -1;
-    margin: -1px;
-    /* Thickness */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80px;
+    height: 80px;
+    max-width: none;
+    object-fit: cover;
+    margin: 0;
+    padding: 0;
+    border: none;
+    display: block;
 }
 
-.hex-graph,
-.hex-bar,
-.hex-wave {
-    width: 60%;
-    height: 60%;
-    border: 1px dashed var(--neon-blue);
-    opacity: 0.5;
+/* --- Specific Widget Images --- */
+/* Empty classes to ensure no lingering backgrounds or shadows */
+.cyber-globe,
+.dragon-ball,
+.data-sphere {
+    background-image: none !important;
+}
+
+@keyframes data-scroll {
+    0% {
+        background-position: 0 0;
+    }
+
+    100% {
+        background-position: 0 20px;
+    }
 }
 
 .system-time {
@@ -724,14 +749,21 @@ body {
 
 /* --- Responsive --- */
 @media (max-width: 768px) {
-    .sidebar {
+
+    .sidebar,
+    .col-left {
         position: fixed;
         height: 100%;
         transform: translateX(-100%);
         transition: transform 0.3s;
+        z-index: 1000;
+        background: rgba(10, 15, 20, 0.95);
+        width: 280px;
+        /* Fixed width for sidebar */
     }
 
-    .sidebar.active {
+    .sidebar.active,
+    .col-left.active {
         transform: translateX(0);
     }
 
@@ -1218,72 +1250,45 @@ body {
     }
 }
 
-/* Mobile Drawer Override */
-@media (max-width: 768px) {
-    .sidebar {
-        width: 85%;
-        max-width: 300px;
-        background: var(--bg-deep);
-        /* Opaque for mobile */
-        border-right: 2px solid var(--neon-blue);
-    }
-
-    .typing-controls {
-        display: none;
-        /* Hide complex controls on mobile to save space */
-    }
-}
-
-/* --- AI Avatar & Visual Polish --- */
-
-.ai-header {
+/* --- Hex Widgets Container --- */
+.hex-widgets {
     display: flex;
+    justify-content: space-around;
     align-items: center;
-    gap: 15px;
-    padding: 15px;
-    background: linear-gradient(90deg, rgba(0, 243, 255, 0.1) 0%, transparent 100%);
-    border-bottom: 1px solid rgba(0, 243, 255, 0.2);
-}
-
-.ai-avatar-container {
-    position: relative;
-    width: 48px;
-    height: 48px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.ai-avatar {
     width: 100%;
-    height: 100%;
+    padding: 10px 0;
+    margin-bottom: 20px;
+    gap: 10px;
+}
+
+/* --- Common Widget Styles --- */
+.cyber-globe,
+.dragon-ball,
+.data-sphere {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-color: transparent;
     position: relative;
 }
 
-.avatar-core {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 24px;
-    height: 24px;
-    background: var(--neon-blue);
-    border-radius: 50%;
-    box-shadow: 0 0 15px var(--neon-blue);
-    z-index: 2;
+/* --- Specific Widget Images --- */
+.cyber-globe {
+    background-image: url('/static/images/cyber-globe.png');
+    box-shadow: 0 0 20px rgba(0, 255, 136, 0.4);
 }
 
-.avatar-ring {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    border: 2px solid var(--neon-cyan);
-    border-radius: 50%;
-    border-top-color: transparent;
-    border-bottom-color: transparent;
-    animation: spin 4s linear infinite;
+.dragon-ball {
+    background-image: url('/static/images/dragon-ball.png');
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+}
+
+.data-sphere {
+    background-image: url('/static/images/data-sphere.png');
+    box-shadow: 0 0 20px rgba(0, 100, 255, 0.5);
 }
 
 .avatar-scan {
@@ -1614,10 +1619,24 @@ body {
 @media (max-width: 768px) {
 
     /* Layout */
+    /* Layout */
+    /* Layout */
+    /* Flexbox Body for Mobile */
+    body {
+        display: flex;
+        flex-direction: column;
+        height: 100dvh;
+        overflow: hidden;
+    }
+
+    /* Layout */
     .app-container {
         flex-direction: column;
-        height: 100vh;
+        height: auto !important;
+        flex: 1;
+        min-height: 0;
         overflow: hidden;
+        padding-bottom: 0;
     }
 
     /* Sidebar (Collapsible/Hidden by default on mobile if needed, or just smaller) */
@@ -1756,15 +1775,15 @@ body {
         display: none !important;
         /* Hidden on PC */
         position: fixed;
-        z-index: 2000;
-        background: rgba(0, 0, 0, 0.8);
+        z-index: 1500;
+        background: rgba(5, 10, 15, 0.95);
         border: 1px solid var(--neon-cyan);
         color: var(--neon-cyan);
         padding: 10px 15px;
         font-family: var(--font-mono);
         cursor: pointer;
         backdrop-filter: blur(5px);
-        box-shadow: 0 0 10px rgba(0, 243, 255, 0.2);
+        box-shadow: 0 0 15px rgba(0, 243, 255, 0.3);
         transition: all 0.3s ease;
     }
 
@@ -1782,13 +1801,17 @@ body {
     }
 
     #mobile-ai-btn {
-        bottom: 20px;
-        right: 20px;
-        border-radius: 20px;
+        top: 10px;
+        right: 10px;
+        border-radius: 4px;
         font-weight: bold;
+        font-size: 1.2rem;
         border-color: var(--neon-green);
         color: var(--neon-green);
-        box-shadow: 0 0 10px rgba(10, 255, 10, 0.2);
+        background: rgba(5, 10, 15, 0.95);
+        /* Added solid background */
+        box-shadow: 0 0 15px rgba(10, 255, 10, 0.3);
+        /* Enhanced shadow */
         /* Match green color */
     }
 
@@ -1825,7 +1848,7 @@ body {
             left: 0;
             width: 280px;
             height: 100%;
-            z-index: 2100;
+            z-index: 4000 !important;
             /* Higher than AI panel (1600) and buttons (2000) */
             background: rgba(5, 10, 15, 0.98);
             border-right: 1px solid var(--neon-cyan);
@@ -1841,18 +1864,85 @@ body {
             transform: translateX(0);
             /* Slide in */
             display: flex;
+            flex-direction: column;
             /* Ensure flex is active */
         }
 
+        /* Ensure internal containers pass height down */
+        .col-left .hud-window,
+        .col-left .nav-section {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0;
+            /* Allow shrinking */
+            height: 100%;
+        }
+
+        /* Override the max-height calculation */
+        .nav-section.expanded .nav-content {
+            max-height: none !important;
+            height: auto !important;
+            flex: 1;
+            overflow-y: auto;
+            padding-bottom: 40px;
+            /* Space at bottom */
+        }
+
+        /* Main Editor Area */
         /* Main Editor Area */
         .col-center {
             width: 100%;
-            height: 100vh;
-            /* Full viewport height */
-            padding-top: 50px;
+            height: auto !important;
+            /* Let flex handle height */
+            flex: 1;
+            /* Fill remaining space in app-container */
+            padding-top: 70px;
             /* Space for top bar/menu button */
+            display: flex;
+            flex-direction: column;
         }
 
+        .editor-window {
+            flex: 1.5;
+            /* Give editor slightly more space */
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .editor-container {
+            flex-direction: column;
+        }
+
+        #code-editor {
+            padding-bottom: 15px;
+            /* Reset padding */
+            flex: 1;
+        }
+
+        .btn-run {
+            position: relative;
+            bottom: auto;
+            right: auto;
+            width: 100%;
+            border-radius: 0;
+            background: rgba(5, 10, 15, 0.95);
+            padding: 12px;
+            border: none;
+            border-top: 1px solid var(--neon-green);
+            margin: 0;
+            z-index: 5;
+        }
+
+        .terminal-window {
+            flex: 1;
+            /* Ensure terminal gets space */
+            min-height: 200px;
+            /* Minimum usable height */
+        }
+
+        /* AI Window (Overlay) */
         /* AI Window (Overlay) */
         .col-right {
             position: fixed;
@@ -1865,7 +1955,7 @@ body {
             transform: translateY(100%);
             /* Hidden (slide down) by default */
             transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
-            padding: 10px;
+            padding: 50px 10px 10px 10px;
             display: flex;
             /* Ensure flex layout */
         }
@@ -1894,15 +1984,20 @@ body {
             display: none;
         }
 
-        /* System Time - Move to top or hide */
+        /* System Time - Centered on Mobile */
         .system-time {
             position: absolute;
-            top: auto;
-            bottom: 10px;
-            left: 10px;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: auto;
             right: auto;
-            font-size: 0.7rem;
+            font-size: 0.8rem;
             z-index: 5;
+            margin-top: 0;
+            text-align: center;
+            width: auto;
+            white-space: nowrap;
         }
 
         /* Modal Adjustments */
@@ -1974,16 +2069,7 @@ body {
     }
 
     .app-footer {
-        position: relative;
-        /* Static flow on mobile */
-        bottom: auto;
-        left: auto;
-        width: 100%;
-        margin-top: 20px;
-        border-top: 1px solid var(--hud-border);
-        background: var(--bg-dark);
-        z-index: 10;
-        /* Lower z-index than modals */
+        display: none !important;
     }
 }
 
@@ -2106,4 +2192,127 @@ body {
     margin-top: 10px;
     font-family: var(--font-mono);
     text-align: center;
+}
+/* --- TTS Panel (Added via AI) --- */
+.editor-window .window-footer-bar {
+    height: auto !important; /* Override default 4px */
+    min-height: 40px;
+    background: rgba(0, 10, 20, 0.95);
+    border-top: 1px solid var(--neon-cyan);
+    padding: 5px 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 -2px 10px rgba(0, 243, 255, 0.1);
+}
+
+.tts-panel {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.tts-controls {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.tts-btn {
+    background: transparent;
+    border: 1px solid var(--neon-cyan);
+    color: var(--neon-cyan);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 14px;
+    padding: 0;
+}
+
+.tts-btn:hover {
+    background: var(--neon-cyan);
+    color: #000;
+    box-shadow: 0 0 10px var(--neon-cyan);
+    transform: scale(1.1);
+}
+
+.tts-speed-control {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    margin-left: 10px;
+    padding-left: 10px;
+    border-left: 1px solid rgba(0, 243, 255, 0.2);
+}
+
+.tts-val {
+    color: var(--neon-blue);
+    min-width: 35px;
+    text-align: right;
+}
+
+input[type=range]#tts-speed {
+    -webkit-appearance: none;
+    width: 100px;
+    height: 4px;
+    background: rgba(0, 243, 255, 0.2);
+    border-radius: 2px;
+    outline: none;
+}
+
+input[type=range]#tts-speed::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    background: var(--neon-cyan);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 5px var(--neon-cyan);
+    transition: transform 0.1s;
+}
+
+input[type=range]#tts-speed::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+}
+
+/* Responsive TTS */
+@media (max-width: 768px) {
+    .editor-window .window-footer-bar {
+        padding: 8px;
+    }
+    
+    .tts-controls {
+        width: 100%;
+        justify-content: space-between;
+        gap: 10px;
+    }
+    
+    .tts-speed-control {
+        flex-grow: 1;
+        margin-left: 5px;
+        padding-left: 5px;
+        border-left: none;
+    }
+    
+    input[type=range]#tts-speed {
+        width: 100%; /* Full width on mobile */
+    }
+    
+    .tts-label {
+        display: none; /* Hide label on small screens */
+    }
+}
+
+/* Ensure TTS Panel is clickable */
+.editor-window .window-footer-bar {
+    position: relative;
+    z-index: 100;
 }

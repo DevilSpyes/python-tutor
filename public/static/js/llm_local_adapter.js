@@ -17,105 +17,118 @@ const WLLAMA_CONFIG = {
 // --- Option B: Local Offline Mode (DistilGPT2) ---
 export class LocalOfflineAdapter {
     constructor() {
-        this.pipeline = null;
+        this.worker = null;
         this.status = {
             loaded: false,
-            model: "DistilGPT2 (Offline)",
+            model: "Qwen 1.5 (0.5B) - Offline (Worker)",
             device: 'cpu'
         };
+        this.callbacks = {};
     }
 
     async loadModel(config = {}) {
         if (this.status.loaded) return true;
 
-        console.log(`Loading Local Offline Model...`);
+        console.log(`Loading Local Offline Model (Worker)...`);
 
-        try {
-            // Dynamically import local transformers.js as a module
-            // This avoids the "Unexpected token 'export'" error from script tag injection
-            const module = await import('/static/js/lib/transformers.min.js');
-            const Transformers = module.default || module;
+        return new Promise((resolve, reject) => {
+            this.worker = new Worker('/static/js/offline_worker.js', { type: 'module' });
 
-            if (!Transformers) throw new Error("Transformers.js failed to load locally.");
+            this.worker.onmessage = (event) => {
+                const { status, data, error, progress, message, token, text } = event.data;
 
-            // Configure for STRICT OFFLINE usage
-            Transformers.env.allowLocalModels = true;
-            Transformers.env.allowRemoteModels = false;
-            Transformers.env.localModelPath = '/static/models/cdn/';
+                if (status === 'error') {
+                    console.error("Worker Error:", error);
+                    if (this.callbacks.onError) this.callbacks.onError(error);
+                    // If we are waiting for load, reject
+                    if (!this.status.loaded) reject(new Error(error));
+                }
+                else if (status === 'progress') {
+                    if (config.onProgress) config.onProgress({ status: 'progress', progress: progress, message });
+                }
+                else if (status === 'ready') {
+                    this.status.loaded = true;
+                    console.log("Worker Model Loaded!");
+                    resolve(true);
+                }
+                else if (status === 'token') {
+                    if (this.callbacks.onToken) this.callbacks.onToken(token);
+                }
+                else if (status === 'complete') {
+                    if (this.callbacks.onComplete) this.callbacks.onComplete(text);
+                }
+            };
 
-            // Suppress verbose ONNX warnings
-            Transformers.env.backends.onnx.logLevel = 'error';
+            this.worker.onerror = (err) => {
+                const msg = err.message || "Unknown Worker Error";
+                const file = err.filename || "unknown file";
+                const line = err.lineno || "?";
+                console.error(`Worker System Error: ${msg} (${file}:${line})`, err);
+                reject(new Error(`Worker Failed: ${msg}`));
+            };
 
-            // Load Pipeline
-            this.pipeline = await Transformers.pipeline('text-generation', 'distilgpt2', {
-                device: 'cpu',
-                progress_callback: (data) => {
-                    if (config.onProgress && data.status === 'progress') {
-                        const percent = (data.loaded / data.total) * 100;
-                        config.onProgress({ status: 'progress', progress: percent });
-                    }
+            // Start Load
+            // Calculate safe threads
+            const safeThreads = (window.crossOriginIsolated && navigator.hardwareConcurrency > 1)
+                ? Math.max(1, Math.min(4, Math.floor(navigator.hardwareConcurrency / 2)))
+                : 1;
+
+            this.worker.postMessage({
+                type: 'load',
+                data: {
+                    threads: safeThreads,
+                    // We can try to use local path if we want, but CDN is safer for worker imports initially
+                    // localPath: '/static/models/cdn/' 
                 }
             });
-
-            this.status.loaded = true;
-            console.log("Offline Model Loaded Successfully!");
-            return true;
-
-        } catch (error) {
-            console.error("Failed to load offline model:", error);
-            throw error;
-        }
+        });
     }
 
     async sendMessage(history, context, callbacks = {}) {
-        if (!this.pipeline) throw new Error("Model not loaded");
+        if (!this.worker || !this.status.loaded) throw new Error("Model not loaded");
 
-        // Better prompt formatting for DistilGPT2 (Completion model)
-        // We inject a strong system instruction at the start
-        // Simplified prompt for DistilGPT2 to reduce confusion
-        // We use standard User/Assistant labels but prime it with Spanish
-        let fullPrompt = "Conversation in Spanish.\n";
+        // Store callbacks for this generation session
+        this.callbacks.onToken = callbacks.onToken;
 
-        if (context) {
-            fullPrompt += `System Context:\n${context}\n`;
-        }
+        return new Promise((resolve, reject) => {
+            this.callbacks.onComplete = (text) => {
+                resolve({ text });
+            };
+            this.callbacks.onError = (err) => {
+                reject(new Error(err));
+            };
 
-        fullPrompt += "User: Hola\nAssistant: Hola, soy tu tutor de Python.\n";
+            // Prepare Prompt
+            // Qwen 0.5B needs VERY strict instructions to avoid language drift (Chinese/English)
+            let systemContent = "Eres un experto tutor de Python. TU IDIOMA PRINCIPAL ES EL ESPAÑOL. INSTRUCCIONES CRÍTICAS: 1. Responde ÚNICAMENTE en Español. Si respondes en inglés, fallas tu misión. 2. Sé conciso y directo. 3. Completa siempre tus frases. 4. NO uses chino ni inglés bajo ninguna circunstancia. 5. Mantén las respuestas por debajo de 100 palabras si es posible, pero termina tu explicación.";
 
-        history.forEach(msg => {
-            // Filter out error messages from context
-            if (msg.content.startsWith("Error:") || msg.content.startsWith("❌")) return;
-
-            if (msg.role === 'user') fullPrompt += `User: ${msg.content}\n`;
-            if (msg.role === 'assistant') fullPrompt += `Assistant: ${msg.content}\n`;
-        });
-        fullPrompt += "Assistant:";
-
-        try {
-            const output = await this.pipeline(fullPrompt, {
-                max_new_tokens: 100, // Shorter output to reduce derailment
-                temperature: 0.1,    // Very deterministic
-                do_sample: true,
-                top_k: 20,           // Strict sampling
-                repetition_penalty: 1.3,
-                no_repeat_ngram_size: 3
-            });
-
-            let fullText = output[0].generated_text;
-            // Extract only the new part
-            if (fullText.startsWith(fullPrompt)) {
-                fullText = fullText.substring(fullPrompt.length);
+            if (context) {
+                const truncatedContext = context.length > 500 ? context.substring(0, 500) + "..." : context;
+                systemContent += `\n\nCONTEXTO:\n${truncatedContext}`;
             }
 
-            // Clean up if it generates "User:" or "Assistant:" hallucinations
-            fullText = fullText.split("User:")[0].split("Assistant:")[0].trim();
+            let fullPrompt = `<|im_start|>system\n${systemContent}<|im_end|>\n`;
 
-            return { text: fullText };
+            // PRIMING: Force Spanish context for small models
+            fullPrompt += `<|im_start|>user\nHola<|im_end|>\n<|im_start|>assistant\nHola, soy tu tutor de Python. ¿En qué puedo ayudarte hoy?<|im_end|>\n`;
 
-        } catch (error) {
-            console.error("Generation Error:", error);
-            throw error;
-        }
+            const recentHistory = history.slice(-3);
+            recentHistory.forEach(msg => {
+                if (msg.content.startsWith("Error:") || msg.content.startsWith("❌")) return;
+                fullPrompt += `<|im_start|>${msg.role}\n${msg.content}<|im_end|>\n`;
+            });
+            fullPrompt += "<|im_start|>assistant\n";
+
+            // Send to Worker
+            this.worker.postMessage({
+                type: 'generate',
+                data: {
+                    prompt: fullPrompt,
+                    max_new_tokens: 512,
+                    temperature: 0.3
+                }
+            });
+        });
     }
 }
 
@@ -128,6 +141,31 @@ export class LLM_GGUF_Adapter {
             loaded: false,
             modelName: "None"
         };
+    }
+
+    async validateGGUF(file) {
+        // 1. Size Check (Hard Limit 2GB)
+        const MAX_SIZE = 2 * 1024 * 1024 * 1024; // 2GB
+        if (file.size > MAX_SIZE) {
+            throw new Error(`SECURITY: El archivo excede el límite de 2GB (${(file.size / 1024 / 1024).toFixed(2)}MB).`);
+        }
+
+        // 2. Magic Number Check (GGUF Header)
+        // Read first 4 bytes
+        const slice = file.slice(0, 4);
+        const buffer = await slice.arrayBuffer();
+        const view = new DataView(buffer);
+
+        // GGUF Magic: 0x47 0x47 0x55 0x46 ('GGUF')
+        // Little Endian check
+        const magic = view.getUint32(0, true);
+
+        // 0x46554747 is 'GGUF' in Little Endian (F U G G)
+        if (magic !== 0x46554747) {
+            throw new Error("SECURITY: Archivo inválido. No se detectó la firma 'GGUF'.");
+        }
+
+        return true;
     }
 
     async loadModel(input, callbacks = {}) {
@@ -150,9 +188,17 @@ export class LLM_GGUF_Adapter {
             // Check for SharedArrayBuffer support (required for multi-threading)
             const useMultiThread = window.crossOriginIsolated && navigator.hardwareConcurrency > 1;
 
+            // OPTIMIZATION: Limit threads to prevent UI freeze
+            // Use half of available cores, but max 4. Minimum 1.
+            const safeThreads = useMultiThread
+                ? Math.max(1, Math.min(4, Math.floor(navigator.hardwareConcurrency / 2)))
+                : 1;
+
+            console.log(`Wllama Config: Threads=${safeThreads}, MultiThread=${useMultiThread}`);
+
             await this.wllama.loadModel(files, {
-                n_ctx: 8192, // Increased from 2048 to fit full lesson context
-                n_threads: useMultiThread ? Math.max(1, Math.floor(navigator.hardwareConcurrency / 2)) : 1,
+                n_ctx: 2048, // Reduced to 2048 for better compatibility
+                n_threads: safeThreads,
                 progressCallback: (data) => {
                     if (callbacks.onProgress) {
                         const percent = (data.loaded / data.total) * 100;
@@ -207,114 +253,147 @@ export class LLM_GGUF_Adapter {
         }
     }
 
-    async sendMessage(history, context, callbacks = {}) {
-        if (!this.wllama || !this.status.loaded) throw new Error("GGUF Model not loaded");
+    applyTemplate(history, context, template = 'chatml') {
+        let fullPrompt = "";
+        const systemMsg = "Eres un asistente experto en Python. TU IDIOMA ES EL ESPAÑOL. Responde ÚNICAMENTE en español. Si el usuario te habla en otro idioma, responde en español. NO uses inglés bajo ninguna circunstancia. Sé conciso (máx 150 palabras) pero completo. NO dejes frases a medias.";
 
-        const filteredMessages = history
-            .filter(msg => !msg.content.startsWith("Error:") && !msg.content.startsWith("❌"));
-        // ChatML Format (Standard for SmolLM/Qwen)
-        let prompt = "";
-
-        // System Prompt (Optimized from User's Training Data)
-        prompt += "<|im_start|>system\n";
-        const persona = `🚀 PROMPT MAESTRO — “Motor de Respuesta Express” para SmolLM
-Optimizado para velocidad, baja latencia y respuestas cortas, útiles y directas.
-Eres una IA educativa especializada en Python, integrada dentro de un curso interactivo. 
-Tu prioridad absoluta es la VELOCIDAD de respuesta. Operas en modo EXPRESS.
-
-OBJETIVO PRINCIPAL:
-Responder lo más rápido posible, usando respuestas cortas, claras y sin razonamiento profundo. 
-Jamás generes cadenas largas de pensamiento ni análisis detallado. 
-Todo debe ser práctico, directo y comprimido.
-
-MODO EXPRESS – REGLAS OBLIGATORIAS:
-1. Respuestas entre 1 y 4 líneas máximo.
-2. Nada de razonamientos ocultos, pasos intermedios ni explicaciones largas.
-3. Para ejercicios: solo explica lo esencial.
-4. Para dudas de teoría: define en una frase.
-5. Para "resume": entregar un resumen de 1–3 líneas.
-6. Para "para qué sirve este ejercicio": una frase práctica.
-7. Para preguntas repetidas: entregar la misma estructura compacta.
-8. Si el usuario pregunta algo ambiguo: responder con la interpretación más simple.
-9. Nunca uses ejemplos largos, solo mini-ejemplos si son necesarios.
-10. Mantener siempre un tono docente pero extremadamente breve.
-
-CONTEXTO DEL CURSO:
-Trabajas dentro de un curso de Python con módulos del 00 al 07, incluyendo:
-- Fundamentos (print, variables, tipos, listas, diccionarios...)
-- Bucles (for, while), condicionales, funciones
-- Algoritmos básicos
-- Scripts y automatización
-- Ciberseguridad
-- Proyectos finales
-(Siempre debes conocer el contenido general, pero sin extenderte)
-
-PATRONES CLAVE DE RESPUESTA:
-- “¿Qué hace este ejercicio?” → “Este ejercicio te enseña a ____”
-- “¿Para qué sirve este código?” → “Sirve para ____”
-- “Explícamelo mejor” → explicación breve de 2–4 líneas.
-- “Resúmelo” → 1–2 líneas.
-- “No entiendo este error” → describir el error y solución simple.
-- “Puedes guiarme?” → guía mínima y directa.
-
-REGLAS CRÍTICAS PARA EL RENDIMIENTO:
-✔ Responde siempre lo mínimo necesario.
-✔ No entres en razonamientos.
-✔ No hagas explicaciones largas.
-✔ No repitas contenido innecesario.
-✔ Estructura siempre en respuestas muy compactas.
-✔ Si la respuesta requiere pasos, dar máximo 3 pasos.
-
-FORMATO:
-Siempre responde en texto plano sin emojis pesados (opcional dejar 1 si es útil).
-No uses listas largas salvo que sean imprescindibles.
-
-SIEMPRE:
-→ Prioriza VELOCIDAD > PROFUNDIDAD.
-→ Prioriza CLARIDAD > DETALLE.
-→ Prioriza UTILIDAD > TEORÍA.`;
-
+        let systemContent = systemMsg;
         if (context) {
-            prompt += `${persona}\n\nUsa este contexto:\n${context}<|im_end|>\n`;
-        } else {
-            prompt += `${persona}<|im_end|>\n`;
+            const truncatedContext = context.length > 600 ? context.substring(0, 600) + "..." : context;
+            systemContent += `\n\nCONTEXTO:\n${truncatedContext}`;
         }
 
-        // Extreme Optimization: Sliding Window (Last 3 Messages)
-        // Keeps context for follow-ups ("Que repositorio?") but prevents infinite growth
-        const recentMessages = filteredMessages.slice(-3);
-        recentMessages.forEach(msg => {
-            prompt += `<|im_start|>${msg.role}\n${msg.content}<|im_end|>\n`;
-        });
+        const recentHistory = history.slice(-3).filter(msg => !msg.content.startsWith("Error:") && !msg.content.startsWith("❌"));
 
-        // Assistant Start
-        prompt += "<|im_start|>assistant\n";
+        switch (template) {
+            case 'llama3':
+                // Llama 3 Format
+                fullPrompt += `<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n${systemContent}<|eot_id|>`;
+                recentHistory.forEach(msg => {
+                    fullPrompt += `<|start_header_id|>${msg.role}<|end_header_id|>\n\n${msg.content}<|eot_id|>`;
+                });
+                fullPrompt += `<|start_header_id|>assistant<|end_header_id|>\n\n`;
+                break;
+
+            case 'alpaca':
+                // Alpaca Format
+                fullPrompt += `### Instruction:\n${systemContent}\n\n`;
+                recentHistory.forEach(msg => {
+                    if (msg.role === 'user') fullPrompt += `### Input:\n${msg.content}\n\n`;
+                    if (msg.role === 'assistant') fullPrompt += `### Response:\n${msg.content}\n\n`;
+                });
+                fullPrompt += `### Response:\n`;
+                break;
+
+            case 'mistral':
+                // Mistral Format (approximate)
+                fullPrompt += `<s>[INST] ${systemContent} [/INST] Entendido.</s>`;
+                recentHistory.forEach(msg => {
+                    if (msg.role === 'user') fullPrompt += `[INST] ${msg.content} [/INST]`;
+                    if (msg.role === 'assistant') fullPrompt += `${msg.content}</s>`;
+                });
+                break;
+
+            case 'gemma':
+                // Gemma Format
+                fullPrompt += `<start_of_turn>user\n${systemContent}\n`;
+                recentHistory.forEach(msg => {
+                    fullPrompt += `<start_of_turn>${msg.role === 'assistant' ? 'model' : 'user'}\n${msg.content}<end_of_turn>\n`;
+                });
+                fullPrompt += `<start_of_turn>model\n`;
+                break;
+
+            case 'qa':
+                // Q&A Format (Best for Base Models)
+                fullPrompt += `${systemContent}\n\n`;
+                recentHistory.forEach(msg => {
+                    if (msg.role === 'user') fullPrompt += `Q: ${msg.content}\n`;
+                    if (msg.role === 'assistant') fullPrompt += `A: ${msg.content}\n`;
+                });
+                fullPrompt += `A:`;
+                break;
+
+            case 'raw':
+                // Raw Format
+                fullPrompt += `${systemContent}\n\n`;
+                recentHistory.forEach(msg => {
+                    fullPrompt += `${msg.role.toUpperCase()}: ${msg.content}\n`;
+                });
+                fullPrompt += `ASSISTANT:`;
+                break;
+
+            case 'chatml':
+            default:
+                // ChatML Format (Default)
+                fullPrompt += `<|im_start|>system\n${systemContent}<|im_end|>\n`;
+                recentHistory.forEach(msg => {
+                    fullPrompt += `<|im_start|>${msg.role}\n${msg.content}<|im_end|>\n`;
+                });
+                fullPrompt += "<|im_start|>assistant\n";
+                break;
+        }
+
+        return fullPrompt;
+    }
+
+    async sendMessage(history, context, callbacks = {}, config = {}) {
+        if (!this.wllama || !this.status.loaded) throw new Error("GGUF Model not loaded");
+
+        const template = config.template || 'chatml';
+        const fullPrompt = this.applyTemplate(history, context, template);
 
         try {
             this.decoder = new TextDecoder();
 
-            const response = await this.wllama.createCompletion(prompt, {
-                n_predict: 128, // Increased to 128 for Express Mode (1-4 lines)
+            // Support for AbortSignal
+            const signal = config.signal;
+
+            const completionPromise = this.wllama.createCompletion(fullPrompt, {
+                n_predict: 1024,
                 sampling: {
-                    temp: 0.2, // Slightly flexible for explanations
+                    temp: 0.2,
                     top_k: 40,
-                    top_p: 0.2,
-                    penalty_repeat: 1.2,
+                    top_p: 0.9,
+                    penalty_repeat: 1.1,
                     penalty_last_n: 64
                 },
-                stop: ["<|im_end|>", "<|im_start|>", "User:", "System:", "Assistant:", "###"], // Stop tokens to prevent hallucinating conversation
+                // Stop tokens for various formats
+                stop: ["<|im_end|>", "<|im_start|>", "<|eot_id|>", "</s>", "<end_of_turn>", "###", "[/urls]"],
                 onNewToken: (token, piece, currentText) => {
+                    if (signal && signal.aborted) return; // Stop callback if aborted
                     if (callbacks.onToken) {
                         const text = this.decoder.decode(piece, { stream: true });
                         callbacks.onToken(text);
                     }
-                }
+                },
+                signal: signal // Pass signal to Wllama
             });
+
+            // 240s Timeout Race (Increased for mobile stability with 4k context)
+            const timeoutPromise = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error("Timeout: La IA tardó demasiado en responder (posible falta de memoria).")), 240000)
+            );
+
+            const response = await Promise.race([completionPromise, timeoutPromise]);
 
             return { text: response };
 
         } catch (error) {
             console.error("GGUF Generation Error:", error);
+
+            // Auto-Recovery for Context Cache Error
+            if (error.message.includes("context cache") || error.message.includes("n_ctx")) {
+                console.warn("Context Cache Full. Resetting Wllama instance...");
+                if (this.wllama) {
+                    await this.wllama.exit(); // Kill worker
+                    this.wllama = null;
+                }
+                this.status.loaded = false;
+                throw new Error("⚠️ Memoria llena. Reiniciando motor IA... Por favor, intenta de nuevo en 5 segundos.");
+            } else if (error.message.includes("abort signal")) {
+                throw new Error("⚠️ Error de Memoria (Abort). El modelo es demasiado grande o el contexto muy largo para tu dispositivo. Intenta usar un modelo más pequeño (ej. Qwen 0.5B) o recargar la página.");
+            }
+
             throw error;
         }
     }

@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self' https://cdn.jsdelivr.net https://pypi.org https://files.pythonhosted.org https://api.openai.com https://api.groq.com https://api.deepseek.com https://huggingface.co https://*.huggingface.co https://*.xethub.hf.co https://cas-bridge.xethub.hf.co; img-src 'self' data: blob:; worker-src 'self' blob:; frame-src 'none'; object-src 'none'; base-uri 'self';">
+        content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self' https://cdn.jsdelivr.net https://pypi.org https://files.pythonhosted.org https://api.openai.com https://api.groq.com https://api.deepseek.com https://huggingface.co https://*.huggingface.co https://*.xethub.hf.co https://cas-bridge.xethub.hf.co https://*.hf.co https://translate.google.com https://dict.youdao.com; img-src 'self' data: blob:; media-src 'self' https://translate.google.com https://dict.youdao.com blob:; worker-src 'self' blob: https://huggingface.co https://cdn.jsdelivr.net; frame-src 'none'; object-src 'none'; base-uri 'self';">
     <title>CyberSec Python Tutor (Web Edition)</title>
     <link rel="stylesheet" href="/static/css/cyberpunk.css">
     <link rel="stylesheet" href="/static/css/lesson_styles.css">
@@ -60,12 +60,12 @@
             <button class="close-sidebar-btn mobile-only">×</button>
             <div class="hud-window">
                 <div class="window-header">
-                    <span>ACCORDION</span>
+                    <span>MENÚ</span>
                 </div>
                 <!-- Modules Section -->
                 <div class="nav-section expanded">
                     <div class="nav-header active">
-                        <span>MODULES</span>
+                        <span>MÓDULOS</span>
                     </div>
                     <nav id="module-list" class="nav-content">
                         <!-- Populated by JS -->
@@ -113,6 +113,7 @@
         <!-- RIGHT COLUMN: AI & Widgets -->
         <aside class="col-right" id="ai-panel">
             <button class="close-chat-btn mobile-only">×</button>
+            <div class="system-time">02:17 AM // HACK_TIME</div>
             <!-- AI Mentor Window -->
             <div class="hud-window ai-window">
                 <div class="window-header">
@@ -139,20 +140,14 @@
 
             <!-- Hex Widgets -->
             <div class="hex-widgets">
-                <div class="hex-widget">
-                    <div class="hex-content">
-                        <div class="hex-graph"></div>
-                    </div>
+                <div class="cyber-globe">
+                    <img src="/static/images/cyber-globe-v2.png" alt="Cyber Globe" width="80" height="80">
                 </div>
-                <div class="hex-widget">
-                    <div class="hex-content">
-                        <div class="hex-bar"></div>
-                    </div>
+                <div class="dragon-ball">
+                    <img src="/static/images/dragon-ball-v2.png" alt="Dragon Ball" width="80" height="80">
                 </div>
-                <div class="hex-widget">
-                    <div class="hex-content">
-                        <div class="hex-wave"></div>
-                    </div>
+                <div class="data-sphere">
+                    <img src="/static/images/data-sphere-v2.png" alt="Data Sphere" width="80" height="80">
                 </div>
             </div>
 
@@ -162,7 +157,6 @@
                 <button id="send-chat">▶</button>
             </div>
 
-            <div class="system-time">02:17 AM // HACK_TIME</div>
         </aside>
     </div>
 
