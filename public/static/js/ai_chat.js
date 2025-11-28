@@ -639,7 +639,7 @@ ${context}`;
         this.elements.modal.innerHTML = `
             <div class="modal-content hacker-modal">
                 <div class="modal-header">
-                    <h2>// SYSTEM_CONFIG</h2>
+                    <h2>// AJUSTES_CHAT_AI</h2>
                     <span id="close-ai-settings" class="close-modal">&times;</span>
                 </div>
                 <div class="modal-body">

@@ -104,17 +104,11 @@ Si deseas modificar el proyecto o ejecutarlo offline en tu máquina:
     │   ├── static/
     │   │   ├── css/        # Estilos
     │   │   ├── js/         # Lógica (app.js, ai_chat.js, llm_local_adapter.js)
-<<<<<<< HEAD
-    │   │   └── lessons/    # Contenido del curso (JSON)
-    ├── README.md           # Esta documentación
-    └── ...
-=======
     │   │   └── exercises_v2.json # Contenido del curso
     ├── scripts/            # Scripts de utilidad (generadores, conversores)
     ├── tests/              # Tests de lógica
     ├── src/                # Código fuente Python (herramientas)
     └── README.md           # Esta documentación
->>>>>>> 2673176 (update)
     ```
 
 3.  **Iniciar Servidor:**
@@ -123,6 +117,12 @@ Si deseas modificar el proyecto o ejecutarlo offline en tu máquina:
     *   Con Node: `npx serve public`
 
 4.  **Abrir:** Navega a `http://localhost:8000`.
+
+> [!WARNING]
+> **Nota sobre el Audio (TTS):**
+> La función de lectura de voz (TTS) depende de las voces instaladas en tu sistema operativo o de la conexión a internet (Google TTS Fallback).
+> *   En entornos **Linux/Local** sin voces configuradas, es posible que el audio no funcione correctamente o suene robótico.
+> *   Si ves errores como `TTS: Timeout waiting for voices` o `synthesis-failed`, asegúrate de tener paquetes de voz instalados (ej: `speech-dispatcher` en Linux) o conexión a internet activa.
 
 ---
 
@@ -137,44 +137,10 @@ Nos tomamos tu seguridad muy en serio:
 
 ---
 
-## 📜 Historial de Cambios (Changelog)
-
-<<<<<<< HEAD
-=======
-### [1.1.0] - 2025-11-28
-#### Added
-- **Native TTS**: Replaced heavy AI TTS with browser's native `SpeechSynthesis` for zero-latency reading.
-- **Network Fallback**: Added lightweight Google TTS fallback for devices without native voices.
-- **Project Cleanup**: Reorganized scripts into `scripts/` and tests into `tests/`. Removed unused assets.
-
->>>>>>> 2673176 (update)
-### [1.0.0] - 2025-11-23
-#### Added
-- **GGUF Support**: Added ability to load custom `.gguf` models locally using Wllama.
-- **Prompt Templates**: Added selector for ChatML, Llama 3, Alpaca, Mistral, Gemma, and Q&A formats.
-- **PDF Generation**: Tools to generate Curriculum and FAQ PDFs.
-- **DeepSeek & Custom API**: Added support for DeepSeek and generic OpenAI-compatible endpoints.
-
-#### Changed
-- **UI Overhaul**: Improved Cyberpunk aesthetic, fixed text spacing, and improved mobile responsiveness.
-- **AI Logic**: Removed server-side proxying. All AI requests are now client-side.
-- **Local Model**: Upgraded default offline model to Qwen 1.5 (0.5B) with Spanish enforcement.
-- **Performance**: Implemented character-based streaming simulation for smoother UI.
-
-#### Removed
-- Legacy server-side Python execution (now fully Pyodide).
-- Large model binaries from the repository to reduce size.
-
----
-
-<<<<<<< HEAD
-## � Créditos
-=======
 ## 🏆 Créditos y Autoría
 
 **Creador y Desarrollador Principal:**
 ### 👨‍💻 Carlos Dominguez
->>>>>>> 2673176 (update)
 
 **Proyecto:** PythonTutor-Web (Educational Open Source)
 
@@ -189,8 +155,4 @@ Agradecimientos especiales a:
 
 Este proyecto se distribuye bajo la licencia **MIT**. Eres libre de usarlo, modificarlo y compartirlo con fines educativos.
 
-<<<<<<< HEAD
-*¡Feliz Hacking Ético!* 🕵️‍♂️
-=======
 *¡Feliz Python Ético!* 🕵️‍♂️
->>>>>>> 2673176 (update)
