@@ -33,9 +33,11 @@ export class LeftPanel {
                 const isActive = sidebar.classList.contains("active");
 
                 if (isActive) {
+                    document.body.classList.add("panel-open");
                     if (aiBtn) aiBtn.style.setProperty("display", "none", "important");
                     mobileBtn.style.setProperty("display", "none", "important");
                 } else {
+                    document.body.classList.remove("panel-open");
                     if (aiBtn) aiBtn.style.removeProperty("display");
                     mobileBtn.style.removeProperty("display");
                 }
@@ -44,6 +46,7 @@ export class LeftPanel {
             if (closeBtn) {
                 closeBtn.addEventListener("click", () => {
                     sidebar.classList.remove("active");
+                    document.body.classList.remove("panel-open");
                     if (aiBtn) aiBtn.style.removeProperty("display");
                     mobileBtn.style.removeProperty("display");
                 });
@@ -54,6 +57,7 @@ export class LeftPanel {
                 centerCol.addEventListener("click", () => {
                     if (window.innerWidth <= 900 && sidebar.classList.contains("active")) {
                         sidebar.classList.remove("active");
+                        document.body.classList.remove("panel-open");
                         if (aiBtn) aiBtn.style.removeProperty("display");
                         mobileBtn.style.removeProperty("display");
                     }

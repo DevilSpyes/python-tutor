@@ -1,0 +1,1051 @@
+
+========================================
+Módulo 00: Bienvenida y Guía
+========================================
+
+
+--- Lección: Guía de Inicio y Créditos ---
+
+### 🎯 Objetivo
+Familiarizarse con el entorno del curso, entender la filosofía de aprendizaje y conocer las herramientas recomendadas.
+
+### 🧠 Aprendizaje
+- Estructura del curso y metodología.
+- Importancia de usar un IDE profesional (VS Code, PyCharm).
+- Mentalidad necesaria: constancia y experimentación.
+
+### 📝 Instrucciones
+1. Lee detenidamente la guía de bienvenida en el panel de contenido.
+2. Ejecuta el código de ejemplo para confirmar que tu entorno funciona.
+3. ¡Prepárate para comenzar!
+
+### 👨‍🏫 Explicación
+Estimados estudiantes, bienvenidos al curso. Este es un espacio diseñado para aprender y experimentar con la programación. Aquí encontrarán las herramientas necesarias para desarrollar sus habilidades técnicas. Comencemos este viaje.
+
+
+========================================
+Módulo 01: Introducción
+========================================
+
+
+--- Lección: Hola Mundo y Print ---
+
+### 🎯 Objetivo
+Escribir y ejecutar tu primer programa en Python, aprendiendo a mostrar información en la consola.
+
+### 🧠 Aprendizaje
+- Uso de la función `print()`.
+- Manejo de cadenas de texto (strings) con comillas simples, dobles y triples.
+- Parámetros `sep` y `end` para controlar el formato de salida.
+
+### 📝 Instrucciones
+1. Ejecuta el código tal como está para ver el saludo inicial.
+2. Modifica el mensaje dentro de `print()` para que diga tu nombre.
+3. Experimenta cambiando el separador `sep="-"` por otro carácter.
+
+### 👨‍🏫 Explicación
+Comencemos con una de las funciones más esenciales en Python: la función `print`. Esta función nos permite mostrar información en la consola y será su compañera constante a lo largo de su vida como programadores.
+
+En este primer ejemplo, observamos cómo imprimir un texto básico. Noten que también es posible utilizar comillas simples para delimitar el texto. Además, la función `print` nos permite imprimir múltiples elementos separándolos por comas.
+
+Existen parámetros útiles como `sep`, que define cómo se separan los elementos impresos, y `end`, que determina qué carácter se imprime al final de la línea. Por defecto, `print` añade un salto de línea, pero podemos modificar este comportamiento.
+
+
+--- Lección: Tipos de Datos ---
+
+### 🎯 Objetivo
+Identificar y diferenciar los tipos de datos fundamentales en Python.
+
+### 🧠 Aprendizaje
+- Enteros (`int`), Flotantes (`float`), Complejos (`complex`).
+- Cadenas de texto (`str`) y Booleanos (`bool`).
+- Uso de la función `type()` para inspeccionar datos.
+
+### 📝 Instrucciones
+1. Ejecuta el código para ver los tipos de datos de cada ejemplo.
+2. Intenta crear una nueva variable con un número decimal y verifica su tipo con `type()`.
+3. Observa la diferencia entre `10` (int) y `"10"` (str).
+
+### 👨‍🏫 Explicación
+Python maneja diversos tipos de datos. La función `type` es muy útil para identificar el tipo de un objeto.
+
+Tenemos los números enteros, conocidos como `int`, que no tienen parte decimal. Pueden ser positivos, negativos o incluso el cero. Python es capaz de manejar enteros de gran tamaño sin problemas.
+
+Luego están los números de punto flotante, o `float`, que son números con decimales. También podemos usar notación científica para representarlos.
+
+
+--- Lección: Conversión de Tipos (Casting) ---
+
+### 🎯 Objetivo
+Aprender a transformar valores de un tipo de dato a otro (Casting).
+
+### 🧠 Aprendizaje
+- Funciones de conversión: `int()`, `float()`, `str()`.
+- Comportamiento al convertir decimales a enteros (truncamiento).
+- Evaluación de verdad (Truthiness) de diferentes valores.
+
+### 📝 Instrucciones
+1. Ejecuta el código y analiza cómo cambian los valores tras la conversión.
+2. Intenta sumar el número `5` con la cadena `"5"` sin convertirla y observa el error.
+3. Corrige el error anterior usando `int("5")`.
+
+### 👨‍🏫 Explicación
+A menudo necesitamos transformar un valor de un tipo a otro. Esto se conoce como "casting".
+
+Por ejemplo, si tenemos una cadena que contiene un número, podemos convertirla a entero usando `int` para realizar operaciones matemáticas. De igual forma, podemos convertir un número a cadena usando `str` para concatenarlo con texto.
+
+Podemos convertir cadenas a números decimales con `float`. Si convertimos un decimal a entero, la parte decimal se truncará.
+
+
+--- Lección: Variables ---
+
+### 🎯 Objetivo
+Entender cómo almacenar y manipular datos en memoria usando variables.
+
+### 🧠 Aprendizaje
+- Asignación y reasignación de variables.
+- Tipado dinámico vs. Tipado fuerte.
+- Convenciones de nombres (snake_case) y palabras reservadas.
+- Uso de f-strings para formatear texto con variables.
+
+### 📝 Instrucciones
+1. Crea una variable con tu nombre y otra con tu edad.
+2. Usa una f-string para imprimir una frase presentándote.
+3. Intenta sumar tu nombre (str) con tu edad (int) y observa el error de tipado fuerte.
+
+### 👨‍🏫 Explicación
+Las variables son contenedores que nos permiten guardar datos en la memoria. Python es un lenguaje de tipado dinámico, lo que significa que no necesitamos declarar el tipo de variable explícitamente; el intérprete lo deduce en tiempo de ejecución.
+
+Para asignar una variable, simplemente escribimos su nombre y le damos un valor. Podemos reasignar un nuevo valor a una variable existente en cualquier momento.
+
+Python también es de tipado fuerte, lo que significa que no realiza conversiones automáticas de tipo que puedan perder información o causar ambigüedad.
+
+
+--- Lección: Entrada de Datos (Input) ---
+
+### 🎯 Objetivo
+Interactuar con el usuario recibiendo datos desde la consola.
+
+### 🧠 Aprendizaje
+- Uso de la función `input()`.
+- Los datos recibidos siempre son cadenas (`str`).
+- Conversión necesaria para trabajar con números ingresados.
+
+### 📝 Instrucciones
+1. Ejecuta el código. Nota que los valores están "hardcodeados" para la demo.
+2. Descomenta las líneas con `input()` para probar la interacción real.
+3. Escribe un programa que pida dos números y muestre su suma.
+
+### 👨‍🏫 Explicación
+La función `input` nos permite interactuar con el usuario obteniendo datos desde la consola. Esta función muestra un mensaje y espera a que el usuario escriba algo y presione Enter.
+
+Es crucial recordar que `input` siempre devuelve una cadena de texto. Si necesitamos un número, debemos convertir esa cadena explícitamente.
+
+
+--- Lección: Ejercicios Básicos ---
+
+### 🎯 Objetivo
+Poner a prueba los conocimientos adquiridos en el módulo mediante retos prácticos.
+
+### 🧠 Aprendizaje
+- Consolidación de `print`, variables, tipos y casting.
+- Resolución de problemas simples.
+
+### 📝 Instrucciones
+1. Completa el Ejercicio 1 imprimiendo tu nombre y ciudad.
+2. En el Ejercicio 2, usa `type()` para identificar las variables.
+3. Realiza las conversiones pedidas en el Ejercicio 3.
+4. Crea tu presentación personal en el Ejercicio 4.
+5. Realiza los cálculos matemáticos del Ejercicio 5.
+
+### 👨‍🏫 Explicación
+Es momento de poner en práctica lo aprendido. En este archivo `exercises.py` encontrarán una serie de retos.
+
+Deberán imprimir mensajes, determinar tipos de datos, realizar conversiones de tipos y trabajar con variables y f-strings. También practicarán operaciones numéricas básicas.
+
+
+--- Lección: Condicionales (If) ---
+
+### 🎯 Objetivo
+Controlar el flujo del programa tomando decisiones basadas en condiciones.
+
+### 🧠 Aprendizaje
+- Estructuras `if`, `elif`, `else`.
+- Operadores de comparación y lógicos (`and`, `or`, `not`).
+- Indentación como bloque de código.
+
+### 📝 Instrucciones
+1. Modifica la variable `edad` y observa qué mensaje se imprime.
+2. Crea una condición que verifique si un número es par (usando `% 2 == 0`).
+3. Prueba la condición ternaria en una sola línea.
+
+### 👨‍🏫 Explicación
+Las sentencias condicionales nos permiten controlar el flujo del programa. Usamos `if` para ejecutar un bloque de código solo si se cumple una condición.
+
+Si la condición no se cumple, podemos usar `else` para ejecutar un bloque alternativo. Para evaluar múltiples condiciones en secuencia, utilizamos `elif`.
+
+
+--- Lección: Booleanos ---
+
+### 🎯 Objetivo
+Comprender la lógica booleana y las tablas de verdad.
+
+### 🧠 Aprendizaje
+- Valores `True` y `False`.
+- Resultado de comparaciones (`>`, `<`, `==`, `!=`).
+- Lógica combinatoria.
+
+### 📝 Instrucciones
+1. Ejecuta el código y analiza los resultados de las comparaciones.
+2. Predice el resultado de `True and False` antes de ejecutarlo.
+3. Crea una expresión compleja combinando `and`, `or` y `not`.
+
+### 👨‍🏫 Explicación
+Los booleanos son fundamentales para la lógica de programación. Representan los valores de verdad: `True` y `False`.
+
+Los operadores de comparación, como mayor que, menor que, igual o diferente, siempre devuelven un valor booleano.
+
+
+--- Lección: Listas ---
+
+### 🎯 Objetivo
+Almacenar y manipular colecciones ordenadas de elementos.
+
+### 🧠 Aprendizaje
+- Creación de listas.
+- Acceso por índice (positivo y negativo).
+- Slicing (rebanado) para obtener sublistas.
+- Modificación de elementos.
+
+### 📝 Instrucciones
+1. Crea una lista con tus 3 películas favoritas.
+2. Imprime la primera y la última película usando índices.
+3. Usa slicing para imprimir solo las dos primeras.
+
+### 👨‍🏫 Explicación
+Las listas son secuencias mutables de elementos. Pueden contener elementos de cualquier tipo, incluso mezclados.
+
+Podemos acceder a los elementos de una lista mediante su índice, empezando por el cero. Los índices negativos nos permiten acceder desde el final.
+
+
+--- Lección: Métodos de Listas ---
+
+### 🎯 Objetivo
+Dominar las herramientas integradas para modificar y gestionar listas.
+
+### 🧠 Aprendizaje
+- Añadir elementos: `append`, `insert`, `extend`.
+- Eliminar elementos: `remove`, `pop`, `clear`.
+- Ordenar (`sort`) y buscar (`index`, `count`).
+
+### 📝 Instrucciones
+1. Resuelve el Ejercicio 1 añadiendo y modificando elementos.
+2. Practica la eliminación en el Ejercicio 2 y 3.
+3. Ordena la lista numérica en el Ejercicio 4.
+4. Entiende la diferencia entre copia y referencia en el Ejercicio 5.
+
+### 👨‍🏫 Explicación
+Python nos ofrece métodos potentes para trabajar con listas.
+
+`append` añade un elemento al final, mientras que `insert` lo coloca en una posición específica. `extend` nos permite agregar múltiples elementos de otra lista.
+
+Para eliminar, tenemos `remove`, que borra la primera aparición de un valor, y `pop`, que elimina y devuelve un elemento por su índice.
+
+
+--- Lección: Bucle While ---
+
+### 🎯 Objetivo
+Ejecutar código repetidamente basándose en una condición lógica.
+
+### 🧠 Aprendizaje
+- Sintaxis `while`.
+- Evitar bucles infinitos.
+- Control de flujo con `break` y `continue`.
+
+### 📝 Instrucciones
+1. Ejecuta el ejemplo del contador.
+2. Intenta escribir un bucle que cuente de 2 en 2 hasta 20.
+3. Resuelve el ejercicio de "Validación de contraseña" usando un `while`.
+
+### 👨‍🏫 Explicación
+El bucle `while` permite ejecutar un bloque de código repetidamente mientras se cumpla una condición. Es vital asegurarse de que la condición eventualmente sea falsa para evitar bucles infinitos.
+
+La sentencia `break` nos permite salir del bucle inmediatamente, mientras que `continue` salta a la siguiente iteración.
+
+
+--- Lección: Bucle For ---
+
+### 🎯 Objetivo
+Iterar eficientemente sobre secuencias y colecciones.
+
+### 🧠 Aprendizaje
+- Iteración sobre listas y cadenas.
+- Uso de `enumerate()` para obtener índice y valor.
+- List Comprehensions (Comprensión de listas) para código conciso.
+
+### 📝 Instrucciones
+1. Itera sobre la lista de frutas e imprime cada una.
+2. Usa `enumerate` para imprimir la posición de cada fruta.
+3. Convierte el bucle de "números pares" en una List Comprehension.
+
+### 👨‍🏫 Explicación
+El bucle `for` es ideal para iterar sobre secuencias, como listas o cadenas de texto.
+
+La función `enumerate` es muy útil cuando necesitamos tanto el índice como el valor del elemento.
+
+Podemos anidar bucles `for`, aunque debemos tener cuidado con la complejidad.
+
+
+--- Lección: Rango (Range) ---
+
+### 🎯 Objetivo
+Generar secuencias numéricas para controlar bucles.
+
+### 🧠 Aprendizaje
+- Función `range(inicio, fin, paso)`.
+- Generación de secuencias inversas.
+- Uso común en bucles `for`.
+
+### 📝 Instrucciones
+1. Imprime los números del 0 al 9 usando `range(10)`.
+2. Genera una cuenta regresiva del 10 al 1.
+3. Resuelve el ejercicio de la tabla de multiplicar usando `range`.
+
+### 👨‍🏫 Explicación
+La función `range` genera una secuencia de números, lo cual es extremadamente útil en bucles `for`.
+
+Podemos especificar el inicio, el fin y el paso de la secuencia. Recuerden que el valor final no se incluye en la secuencia.
+
+
+--- Lección: Funciones ---
+
+### 🎯 Objetivo
+Modularizar el código creando bloques reutilizables.
+
+### 🧠 Aprendizaje
+- Definición `def` y llamada de funciones.
+- Parámetros posicionales y nombrados.
+- Retorno de valores (`return`).
+- Argumentos variables `*args` y `**kwargs`.
+
+### 📝 Instrucciones
+1. Define una función `saludar(nombre)` que imprima un saludo.
+2. Crea una función `sumar(a, b)` que devuelva la suma.
+3. Experimenta pasando argumentos por nombre.
+
+### 👨‍🏫 Explicación
+Las funciones son bloques de código reutilizables. Nos permiten modularizar nuestros programas y evitar la repetición.
+
+Definimos una función con la palabra clave `def`. Podemos especificar parámetros, valores por defecto y valores de retorno.
+
+
+--- Lección: Reto: Los 4 Fantásticos ---
+
+### 🎯 Objetivo
+Aplicar lógica de conteo y comparación de caracteres en strings.
+
+### 🧠 Aprendizaje
+- Manipulación de strings (`upper`).
+- Método `.count()`.
+- Lógica condicional.
+
+### 📝 Instrucciones
+1. Implementa la función `check_is_balanced`.
+2. Convierte el texto a mayúsculas.
+3. Cuenta las 'R' y las 'J'.
+4. Retorna `True` si son iguales o si ambas son 0.
+
+### 👨‍🏫 Explicación
+En este reto, deben crear una función que determine si una alianza está equilibrada. Deberán contar las apariciones de ciertos caracteres y comparar sus cantidades. Recuerden normalizar el texto a mayúsculas para facilitar el conteo.
+
+
+--- Lección: Reto: Jurassic Park ---
+
+### 🎯 Objetivo
+Filtrar y sumar elementos de una lista basándose en una condición numérica.
+
+### 🧠 Aprendizaje
+- Iteración de listas.
+- Operador módulo `%` para paridad.
+- Acumuladores.
+
+### 📝 Instrucciones
+1. Inicializa una variable `suma` en 0.
+2. Recorre la lista de huevos.
+3. Si el número es par, súmalo a `suma`.
+4. Retorna el total.
+
+### 👨‍🏫 Explicación
+Aquí deben sumar los "huevos de dinosaurios carnívoros", que están representados por los números pares en una lista. Iteren sobre la lista y utilicen el operador módulo para filtrar los pares.
+
+
+--- Lección: Reto: Primera Suma ---
+
+### 🎯 Objetivo
+Encontrar pares de números que cumplan una condición de suma.
+
+### 🧠 Aprendizaje
+- Búsqueda en arrays.
+- Optimización (fuerza bruta vs. diccionario).
+- Retorno temprano.
+
+### 📝 Instrucciones
+1. Implementa la función `find_first_sum`.
+2. Opción A (Fácil): Usa dos bucles `for` anidados para probar todas las parejas.
+3. Opción B (Eficiente): Usa un diccionario para guardar los números que ya has visto y busca su complemento.
+
+### 👨‍🏫 Explicación
+El objetivo es encontrar dos números en un array que sumen un valor objetivo. Pueden usar fuerza bruta con bucles anidados, o una solución más eficiente utilizando un diccionario para recordar los números ya vistos.
+
+
+--- Lección: Diccionarios ---
+
+### 🎯 Objetivo
+Almacenar datos estructurados en pares clave-valor.
+
+### 🧠 Aprendizaje
+- Creación y acceso a diccionarios.
+- Métodos `.keys()`, `.values()`, `.items()`.
+- Modificación y eliminación de claves.
+
+### 📝 Instrucciones
+1. Crea un diccionario que te describa (nombre, edad, hobbies).
+2. Accede a tu edad e imprímela.
+3. Añade una nueva clave 'profesion'.
+4. Itera sobre el diccionario imprimiendo clave y valor.
+
+### 👨‍🏫 Explicación
+Los diccionarios son colecciones de pares clave-valor. Son extremadamente útiles para almacenar datos estructurados.
+
+Podemos acceder a los valores mediante sus claves, modificar valores, añadir nuevos pares y eliminar entradas.
+
+
+--- Lección: Reto: Batalla Pokémon ---
+
+### 🎯 Objetivo
+Simular una lógica de enfrentamiento comparando listas elemento a elemento.
+
+### 🧠 Aprendizaje
+- Iteración simultánea (o por índice).
+- Comparación condicional compleja.
+- Acumulación de resultados.
+
+### 📝 Instrucciones
+1. Implementa la función `battle`.
+2. Compara cada posición `i` de ambas listas.
+3. Si A gana, suma la diferencia al siguiente de A.
+4. Si B gana, suma al siguiente de B.
+5. Al final, suma los totales y decide el ganador.
+
+### 👨‍🏫 Explicación
+En este reto final del módulo, simularán una batalla comparando elementos de dos listas. Implementen la lógica descrita para determinar el ganador basándose en las diferencias de poder.
+
+
+========================================
+Módulo 02: Conceptos Fundamentales
+========================================
+
+
+--- Lección: Hola Mundo (Repaso) ---
+
+### 🎯 Objetivo
+Verificar la configuración del entorno y repasar la ejecución básica.
+
+### 🧠 Aprendizaje
+- Confirmación de entorno Python 3.
+- Ejecución de scripts.
+
+### 📝 Instrucciones
+1. Ejecuta el script.
+2. Verifica que veas el saludo en la consola.
+
+### 👨‍🏫 Explicación
+Retomemos nuestro primer programa en Python. Este ejercicio sirve para verificar que nuestro entorno de ejecución está configurado correctamente. Es el primer paso esencial antes de adentrarnos en conceptos más complejos.
+
+
+--- Lección: Números ---
+
+### 🎯 Objetivo
+Profundizar en los tipos numéricos y su representación.
+
+### 🧠 Aprendizaje
+- Diferencia entre `int` y `float`.
+- Notación científica (`e`).
+- Números complejos (`j`).
+
+### 📝 Instrucciones
+1. Ejecuta el código.
+2. Observa cómo Python imprime los números grandes y la notación científica.
+3. Intenta crear un número complejo y sumar otro.
+
+### 👨‍🏫 Explicación
+En Python, trabajamos principalmente con tres tipos numéricos.
+
+Primero, los enteros o `int`, que pueden ser positivos, negativos o cero.
+
+Segundo, los números de punto flotante o `float`, que representan valores decimales. Noten el uso de la notación científica con `e` para potencias de 10.
+
+
+--- Lección: Manejo de Errores (Try/Except) ---
+
+### 🎯 Objetivo
+Escribir código resiliente que no se rompa ante errores inesperados.
+
+### 🧠 Aprendizaje
+- Bloques `try`, `except`.
+- Captura de excepciones específicas.
+- Manejo de códigos de estado HTTP (en el ejemplo).
+
+### 📝 Instrucciones
+1. Ejecuta el código.
+2. Cambia la URL a una que no exista para provocar un error.
+3. Observa cómo el bloque `except` captura el fallo elegantemente.
+
+### 👨‍🏫 Explicación
+El manejo de errores es crucial para escribir código robusto. El bloque `try-except` nos permite capturar excepciones y evitar que nuestro programa se detenga abruptamente.
+
+
+--- Lección: Comentarios y Docstrings ---
+
+### 🎯 Objetivo
+Documentar el código para mejorar su legibilidad y mantenimiento.
+
+### 🧠 Aprendizaje
+- Comentarios de línea `#`.
+- Docstrings `"""..."""` para funciones.
+- Acceso a documentación con `__doc__`.
+
+### 📝 Instrucciones
+1. Lee los comentarios en el código.
+2. Añade un comentario explicando qué hace una línea.
+3. Modifica el docstring de la función `saludar` y ejecútalo.
+
+### 👨‍🏫 Explicación
+El código se lee más veces de las que se escribe. Por eso, los comentarios son vitales.
+
+Usamos el símbolo almohadilla para comentarios de una sola línea. Para bloques más extensos, aunque no existen oficialmente, solemos usar cadenas multilínea.
+
+
+--- Lección: Conversión Numérica ---
+
+### 🎯 Objetivo
+Practicar la conversión explícita entre tipos numéricos.
+
+### 🧠 Aprendizaje
+- `float()` a `int()` (pérdida de precisión).
+- `int()` a `float()`.
+- Conversión a `complex()`.
+
+### 📝 Instrucciones
+1. Ejecuta el código.
+2. Observa qué pasa con los decimales cuando conviertes un float negativo a int.
+
+### 👨‍🏫 Explicación
+A veces necesitamos convertir entre tipos numéricos.
+
+Podemos transformar enteros a flotantes, flotantes a enteros (perdiendo la parte decimal) e incluso números a complejos.
+
+
+--- Lección: Operaciones Numéricas Extra ---
+
+### 🎯 Objetivo
+Explorar sistemas numéricos alternativos y precisión decimal.
+
+### 🧠 Aprendizaje
+- Módulo `decimal` para precisión financiera.
+- Binario (`0b`), Octal (`0o`), Hexadecimal (`0x`).
+- Problemas de precisión de punto flotante.
+
+### 📝 Instrucciones
+1. Ejecuta el código y sorpréndete con `1.1 + 2.2`.
+2. Usa `Decimal` para corregir esa suma.
+3. Convierte un número decimal a binario con `bin()`.
+
+### 👨‍🏫 Explicación
+Profundicemos en los números.
+
+Es importante saber que la aritmética de punto flotante puede tener pequeñas imprecisiones debido a cómo se representan los números en binario. Para precisión exacta, como en finanzas, usamos el módulo `decimal`.
+
+
+--- Lección: Cadenas de Texto (Strings) ---
+
+### 🎯 Objetivo
+Manipular texto básico y entender la inmutabilidad de los strings.
+
+### 🧠 Aprendizaje
+- Concatenación.
+- Longitud `len()`.
+- Conversión de números a string para concatenar.
+
+### 📝 Instrucciones
+1. Ejecuta el código.
+2. Intenta concatenar un número directamente a un string y corrige el error.
+3. Crea un string multilínea con tu dirección.
+
+### 👨‍🏫 Explicación
+Las cadenas de texto son secuencias de caracteres. Podemos usar comillas simples, dobles o triples.
+
+La concatenación nos permite unir cadenas con el operador `+`. Sin embargo, no podemos concatenar directamente un número con una cadena; debemos convertir el número primero.
+
+
+--- Lección: Formato de Strings ---
+
+### 🎯 Objetivo
+Presentar datos de forma legible y estructurada.
+
+### 🧠 Aprendizaje
+- Operador `%` (Legacy).
+- Método `.format()`.
+- f-strings (Moderno y recomendado).
+
+### 📝 Instrucciones
+1. Ejecuta los ejemplos.
+2. Usa f-strings para imprimir "Hola, soy [Nombre] y vivo en [Ciudad]".
+3. Prueba el formateo de decimales con `:.2f`.
+
+### 👨‍🏫 Explicación
+Dar formato a las cadenas es esencial para presentar datos.
+
+Tenemos el operador antiguo `%`, el método `.format()` que ofrece gran flexibilidad con argumentos posicionales y nombrados, y las modernas `f-strings`, que son la forma más recomendada y legible.
+
+
+--- Lección: Métodos de Strings ---
+
+### 🎯 Objetivo
+Utilizar métodos integrados para procesar y validar texto.
+
+### 🧠 Aprendizaje
+- Transformación: `upper`, `lower`, `capitalize`.
+- Validación: `isalpha`, `isnumeric`.
+- Manipulación: `split`, `join`, `replace`.
+
+### 📝 Instrucciones
+1. Ejecuta el código.
+2. Convierte tu nombre completo a mayúsculas.
+3. Usa `split` para separar una frase en palabras.
+4. Valida si un string es un número válido.
+
+### 👨‍🏫 Explicación
+La clase `str` tiene multitud de métodos útiles.
+
+Podemos cambiar mayúsculas y minúsculas con `lower`, `upper` y `capitalize`.
+
+Podemos verificar el contenido con `isalnum`, `isalpha`, `isnumeric`, entre otros.
+
+
+--- Lección: Estructuras Condicionales ---
+
+### 🎯 Objetivo
+Tomar decisiones complejas en el código.
+
+### 🧠 Aprendizaje
+- Lógica `if-elif-else`.
+- Validación de entradas.
+- Manejo de casos por defecto (`else`).
+
+### 📝 Instrucciones
+1. Cambia la variable `url` a diferentes valores ('http', 'https', vacía).
+2. Observa qué bloque se ejecuta en cada caso.
+3. Añade una nueva condición para detectar dominios '.com'.
+
+### 👨‍🏫 Explicación
+Las estructuras de control dirigen el flujo de nuestro programa.
+
+El bloque `if-elif-else` nos permite tomar decisiones. Recuerden que `elif` nos permite evaluar múltiples condiciones en secuencia.
+
+
+--- Lección: Bucle While Avanzado ---
+
+### 🎯 Objetivo
+Implementar lógica de repetición con condiciones de salida complejas.
+
+### 🧠 Aprendizaje
+- Bucle `while` con `else`.
+- Uso de `break` para salir prematuramente.
+- Validación de entrada de usuario.
+
+### 📝 Instrucciones
+1. Ejecuta el simulador de adivinanza.
+2. Descomenta la parte interactiva para jugar tú mismo.
+3. Implementa un límite de intentos.
+
+### 👨‍🏫 Explicación
+El bucle `while` puede ser más complejo. Podemos anidar condiciones dentro de él.
+
+Un patrón común es usar un bucle infinito `while True` y romperlo con `break` cuando se cumple una condición deseada.
+
+
+--- Lección: Bucle For Avanzado ---
+
+### 🎯 Objetivo
+Iterar sobre estructuras de datos complejas como diccionarios.
+
+### 🧠 Aprendizaje
+- Iteración de claves de diccionario.
+- Formateo de salida en bucles.
+
+### 📝 Instrucciones
+1. Ejecuta el código para ver los puertos.
+2. Añade un nuevo puerto al diccionario.
+3. Modifica el bucle para imprimir también el protocolo en mayúsculas.
+
+### 👨‍🏫 Explicación
+El bucle `for` itera sobre secuencias.
+
+Podemos iterar sobre las claves de un diccionario. También podemos usar `else` con un bucle `for`.
+
+
+--- Lección: Uso de Range ---
+
+### 🎯 Objetivo
+Dominar la generación de secuencias numéricas para iteraciones.
+
+### 🧠 Aprendizaje
+- `range` con paso positivo y negativo.
+- Iteración por índice usando `range(len(lista))`.
+
+### 📝 Instrucciones
+1. Ejecuta los ejemplos de `range`.
+2. Crea un bucle que imprima los múltiplos de 5 del 0 al 50.
+3. Itera sobre la lista de puertos usando su índice.
+
+### 👨‍🏫 Explicación
+La función `range` es versátil. Genera secuencias de enteros y es la compañera ideal del bucle `for`.
+
+Recuerden que `range` solo acepta enteros. No intenten pasarle flotantes o cadenas.
+
+
+--- Lección: Control de Bucles (Break/Continue) ---
+
+### 🎯 Objetivo
+Afinar el control sobre la ejecución de los bucles.
+
+### 🧠 Aprendizaje
+- `break`: Detener el bucle.
+- `continue`: Saltar iteración.
+- `pass`: Placeholder.
+
+### 📝 Instrucciones
+1. Ejecuta el código de escaneo de puertos simulado.
+2. Observa cómo `continue` salta los puertos web.
+3. Observa cómo `break` detiene el escaneo al encontrar SSH.
+
+### 👨‍🏫 Explicación
+Tenemos control total sobre nuestros bucles.
+
+`break` termina el bucle inmediatamente.
+`continue` salta el resto de la iteración actual y vuelve al inicio.
+
+
+--- Lección: Condicionales en Una Línea ---
+
+### 🎯 Objetivo
+Escribir código más conciso usando expresiones ternarias.
+
+### 🧠 Aprendizaje
+- Sintaxis: `valor_si if condicion else valor_no`.
+- Legibilidad vs. Concisión.
+
+### 📝 Instrucciones
+1. Ejecuta los ejemplos.
+2. Escribe una expresión ternaria que asigne "Par" o "Impar" a una variable según un número.
+
+### 👨‍🏫 Explicación
+Para condiciones simples, podemos usar expresiones condicionales en una sola línea. Esto hace el código más conciso, pero úsenlo con moderación para no sacrificar la legibilidad.
+
+
+--- Lección: Operadores Aritméticos ---
+
+### 🎯 Objetivo
+Realizar cálculos matemáticos fundamentales.
+
+### 🧠 Aprendizaje
+- Operadores básicos: `+`, `-`, `*`, `/`.
+- División entera `//` y Módulo `%`.
+- Potencia `**`.
+
+### 📝 Instrucciones
+1. Ejecuta las operaciones.
+2. Calcula el resto de dividir 21 entre 5.
+3. Calcula 2 elevado a la 10.
+
+### 👨‍🏫 Explicación
+Python soporta todas las operaciones matemáticas estándar: suma, resta, multiplicación y división.
+
+Noten la diferencia entre la división normal `/`, que devuelve un flotante, y la división entera `//`, que descarta la parte decimal.
+
+
+--- Lección: Operadores de Comparación ---
+
+### 🎯 Objetivo
+Comparar valores para lógica booleana.
+
+### 🧠 Aprendizaje
+- Comparación numérica.
+- Comparación de strings (orden lexicográfico).
+
+### 📝 Instrucciones
+1. Ejecuta las comparaciones.
+2. Compara dos strings: "Python" y "Java". ¿Cuál es mayor?
+3. Verifica si 10 es distinto de "10".
+
+### 👨‍🏫 Explicación
+Estos operadores comparan dos valores y devuelven un booleano. Funcionan con números y también con cadenas (basándose en el orden alfabético/ASCII).
+
+
+--- Lección: Operadores de Asignación ---
+
+### 🎯 Objetivo
+Modificar variables de forma eficiente.
+
+### 🧠 Aprendizaje
+- Asignación simple `=`.
+- Asignación compuesta `+=`, `-=`, `*=`.
+
+### 📝 Instrucciones
+1. Ejecuta el código.
+2. Usa `+=` para incrementar una variable contador.
+3. Usa `*=` para duplicar el valor de una variable.
+
+### 👨‍🏫 Explicación
+Más allá del simple `=`, tenemos operadores de asignación compuesta como `+=`, `-=`, `*=`, etc. Estos realizan la operación y actualizan la variable en un solo paso.
+
+
+--- Lección: Operadores Lógicos ---
+
+### 🎯 Objetivo
+Combinar condiciones booleanas.
+
+### 🧠 Aprendizaje
+- `and`: Ambos deben ser ciertos.
+- `or`: Al menos uno cierto.
+- `not`: Inversión.
+
+### 📝 Instrucciones
+1. Ejecuta las pruebas lógicas.
+2. Evalúa: `True and False or True`.
+3. Usa `not` para invertir una condición.
+
+### 👨‍🏫 Explicación
+`and`, `or` y `not` son la base de la lógica booleana en Python. Nos permiten construir condiciones complejas.
+
+
+--- Lección: Operadores de Identidad ---
+
+### 🎯 Objetivo
+Entender la diferencia entre igualdad de valor e identidad de objeto.
+
+### 🧠 Aprendizaje
+- `is`: ¿Son el mismo objeto en memoria?
+- `==`: ¿Tienen el mismo valor?
+- Mutabilidad e identidad.
+
+### 📝 Instrucciones
+1. Ejecuta el código.
+2. Crea dos listas idénticas y compáralas con `is` y `==`.
+3. Asigna una lista a otra variable (`a = b`) y compáralas con `is`.
+
+### 👨‍🏫 Explicación
+Aquí hay una distinción sutil pero importante: `==` compara valores, mientras que `is` compara identidad (si son el mismo objeto en memoria).
+
+
+--- Lección: Estructuras de Datos ---
+
+### 🎯 Objetivo
+Conocer las estructuras principales para organizar datos.
+
+### 🧠 Aprendizaje
+- Listas `[]`: Ordenadas, mutables.
+- Tuplas `()`: Ordenadas, inmutables.
+- Diccionarios `{k:v}`: Clave-valor.
+- Conjuntos `{}`: Únicos, desordenados.
+
+### 📝 Instrucciones
+1. Ejecuta el código de ejemplo.
+2. Crea una lista, una tupla, un set y un diccionario vacíos.
+3. Verifica sus tipos con `type()`.
+
+### 👨‍🏫 Explicación
+Las estructuras de datos organizan nuestra información.
+
+Las Listas son ordenadas y mutables.
+Las Tuplas son ordenadas e inmutables.
+Los Diccionarios son pares clave-valor.
+Los Conjuntos (Sets) son colecciones no ordenadas de elementos únicos.
+
+
+--- Lección: Listas a Fondo ---
+
+### 🎯 Objetivo
+Manipulación avanzada de listas.
+
+### 🧠 Aprendizaje
+- Slicing complejo.
+- Métodos de búsqueda y ordenamiento.
+- Gestión de memoria (copias).
+
+### 📝 Instrucciones
+1. Ejecuta las operaciones de lista.
+2. Usa slicing para invertir la lista de puertos.
+3. Ordena la lista de puertos de mayor a menor.
+
+### 👨‍🏫 Explicación
+Profundicemos en las listas. Podemos verificar existencia con `in`, acceder por índices positivos o negativos, y usar "slicing" avanzado.
+
+
+--- Lección: Diccionarios a Fondo ---
+
+### 🎯 Objetivo
+Modelar datos complejos con diccionarios anidados.
+
+### 🧠 Aprendizaje
+- Estructuras anidadas (JSON-like).
+- Métodos de acceso seguro `.get()`.
+- Actualización y fusión de diccionarios.
+
+### 📝 Instrucciones
+1. Ejecuta el código de empleados.
+2. Añade un nuevo proyecto al empleado 100.
+3. Usa `.get()` para acceder a una clave que podría no existir.
+
+### 👨‍🏫 Explicación
+Los diccionarios son increíblemente flexibles. Pueden contener listas u otros diccionarios anidados.
+
+Métodos como `keys()`, `values()` e `items()` nos permiten iterar sobre ellos de diferentes formas.
+
+
+--- Lección: Tuplas ---
+
+### 🎯 Objetivo
+Trabajar con colecciones inmutables.
+
+### 🧠 Aprendizaje
+- Creación y desempaquetado.
+- Inmutabilidad (protección de datos).
+- Conversión lista-tupla.
+
+### 📝 Instrucciones
+1. Crea una tupla con coordenadas GPS.
+2. Intenta modificar un valor y observa el error.
+3. Concatena dos tuplas.
+
+### 👨‍🏫 Explicación
+Las tuplas, al ser inmutables, son útiles para datos que no deben cambiar. Pueden contener cualquier tipo de dato. Aunque no podemos modificarlas, podemos concatenarlas o crear nuevas tuplas a partir de ellas.
+
+
+--- Lección: Conjuntos (Sets) ---
+
+### 🎯 Objetivo
+Manejar colecciones de elementos únicos y operaciones de conjuntos.
+
+### 🧠 Aprendizaje
+- Eliminación de duplicados.
+- Unión, Intersección, Diferencia.
+- Pertenencia eficiente.
+
+### 📝 Instrucciones
+1. Crea un set a partir de una lista con duplicados.
+2. Realiza la unión de dos sets.
+3. Encuentra la intersección (elementos comunes).
+
+### 👨‍🏫 Explicación
+Los conjuntos son ideales cuando necesitamos unicidad y operaciones matemáticas de conjuntos como unión, intersección y diferencia. No tienen orden, así que no podemos acceder por índice.
+
+
+--- Lección: Funciones Avanzadas ---
+
+### 🎯 Objetivo
+Escribir funciones con lógica condicional y retorno.
+
+### 🧠 Aprendizaje
+- Funciones que retornan booleanos.
+- Ámbito de variables.
+- Reutilización de código.
+
+### 📝 Instrucciones
+1. Implementa la función `es_par`.
+2. Llama a la función con diferentes números.
+3. Usa el resultado en un `if`.
+
+### 👨‍🏫 Explicación
+Las funciones son esenciales para la modularidad. Recuerden que pueden devolver valores y que las variables definidas dentro de ellas tienen un ámbito local.
+
+
+--- Lección: Funciones de Colección ---
+
+### 🎯 Objetivo
+Aplicar programación funcional para procesar datos.
+
+### 🧠 Aprendizaje
+- `lambda`: Funciones anónimas.
+- `map`: Transformación.
+- `filter`: Filtrado.
+- `sorted` con clave personalizada.
+
+### 📝 Instrucciones
+1. Ordena la lista de personas por edad.
+2. Usa `map` para crear una lista de solo nombres.
+3. Usa `filter` para obtener personas mayores de 60 años.
+
+### 👨‍🏫 Explicación
+Python ofrece herramientas funcionales como `lambda`, `map` y `filter`.
+
+Las funciones `lambda` son funciones anónimas pequeñas. `map` aplica una función a cada elemento de un iterable, y `filter` selecciona elementos que cumplen una condición.
+
+
+--- Lección: Funciones Integradas ---
+
+### 🎯 Objetivo
+Conocer la "caja de herramientas" estándar de Python.
+
+### 🧠 Aprendizaje
+- `abs()`, `bool()`, `input()`.
+- `locals()` para depuración.
+
+### 📝 Instrucciones
+1. Calcula el valor absoluto de un número negativo.
+2. Usa `locals()` para ver las variables definidas en el entorno actual.
+
+### 👨‍🏫 Explicación
+Python viene con "baterías incluidas". Funciones como `abs`, `bool`, `input` y muchas otras están siempre disponibles sin necesidad de importar nada.
+
+
+--- Lección: Expresiones Regulares (Regex) ---
+
+### 🎯 Objetivo
+Introducción al reconocimiento de patrones en texto.
+
+### 🧠 Aprendizaje
+- Módulo `re`.
+- Patrones básicos.
+- Validación de formatos (como URLs).
+
+### 📝 Instrucciones
+1. Ejecuta el validador de URLs.
+2. Añade una URL inválida a la lista y ve si la detecta.
+3. Intenta modificar el patrón para aceptar FTP.
+
+### 👨‍🏫 Explicación
+Las expresiones regulares son un lenguaje en sí mismo para buscar patrones en texto. Son extremadamente potentes para validaciones y extracción de información.
+
+
+--- Lección: Introducción a Clases y Objetos ---
+
+### 🎯 Objetivo
+Comprender los fundamentos de la Programación Orientada a Objetos (POO).
+
+### 🧠 Aprendizaje
+- Clases vs. Objetos.
+- Atributos y Métodos.
+- Constructor `__init__`.
+
+### 📝 Instrucciones
+1. Define una clase simple (ej. `Perro`).
+2. Crea dos instancias (objetos) de esa clase.
+3. Define un método `ladrar` y llámalo.
+
+### 👨‍🏫 Explicación
+La programación orientada a objetos nos permite modelar el mundo real.
+
+Una clase es una plantilla. Un objeto es una instancia de esa clase.
+Los atributos son datos, y los métodos son comportamientos.

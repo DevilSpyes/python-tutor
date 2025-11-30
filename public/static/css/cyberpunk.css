@@ -65,6 +65,11 @@
     padding: 0;
 }
 
+html,
+body {
+    overscroll-behavior-x: none;
+}
+
 body {
     background-color: var(--bg-deep);
     color: var(--text-main);
@@ -75,6 +80,8 @@ body {
     background-image:
         linear-gradient(rgba(0, 20, 30, 0.9), rgba(0, 10, 10, 0.95)),
         url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2300f3ff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    touch-action: pan-y;
+    /* Disable horizontal swipe gestures */
 }
 
 /* --- Global Effects --- */
@@ -1626,7 +1633,10 @@ body {
         display: flex;
         flex-direction: column;
         height: 100dvh;
-        overflow: hidden;
+        overflow-y: auto;
+        /* Allow scrolling to see footer */
+        overscroll-behavior-x: none;
+        /* Prevent swipe navigation */
     }
 
     /* Layout */
@@ -2069,6 +2079,17 @@ body {
     }
 
     .app-footer {
+        display: block !important;
+        position: relative;
+        /* Not fixed on mobile to avoid covering content */
+        margin-top: 20px;
+        font-size: 0.7rem;
+        padding-bottom: 80px;
+        /* Extra padding for bottom navigation/buttons */
+    }
+
+    /* Hide footer when side panels are open */
+    body.panel-open .app-footer {
         display: none !important;
     }
 }
@@ -2193,9 +2214,11 @@ body {
     font-family: var(--font-mono);
     text-align: center;
 }
+
 /* --- TTS Panel (Added via AI) --- */
 .editor-window .window-footer-bar {
-    height: auto !important; /* Override default 4px */
+    height: auto !important;
+    /* Override default 4px */
     min-height: 40px;
     background: rgba(0, 10, 20, 0.95);
     border-top: 1px solid var(--neon-cyan);
@@ -2288,26 +2311,28 @@ input[type=range]#tts-speed::-webkit-slider-thumb:hover {
     .editor-window .window-footer-bar {
         padding: 8px;
     }
-    
+
     .tts-controls {
         width: 100%;
         justify-content: space-between;
         gap: 10px;
     }
-    
+
     .tts-speed-control {
         flex-grow: 1;
         margin-left: 5px;
         padding-left: 5px;
         border-left: none;
     }
-    
+
     input[type=range]#tts-speed {
-        width: 100%; /* Full width on mobile */
+        width: 100%;
+        /* Full width on mobile */
     }
-    
+
     .tts-label {
-        display: none; /* Hide label on small screens */
+        display: none;
+        /* Hide label on small screens */
     }
 }
 

@@ -1,0 +1,807 @@
+{
+    "1": {
+        "summary": "Familiarizarse con el entorno del curso, entender la filosofía de aprendizaje y conocer las herramientas recomendadas.",
+        "explanation": "Estimados estudiantes, bienvenidos al curso. Este es un espacio diseñado para aprender y experimentar con la programación. Aquí encontrarán las herramientas necesarias para desarrollar sus habilidades técnicas. Comencemos este viaje.\n\n\n========================================\nMódulo 01: Introducción\n========================================",
+        "concepts": "Estructura del curso y metodología.\nImportancia de usar un IDE profesional (VS Code, PyCharm).\nMentalidad necesaria: constancia y experimentación.",
+        "line_by_line": "1. Lee detenidamente la guía de bienvenida en el panel de contenido.\n2. Ejecuta el código de ejemplo para confirmar que tu entorno funciona.\n3. ¡Prepárate para comenzar!",
+        "errors": {}
+    },
+    "2": {
+        "summary": "Escribir y ejecutar tu primer programa en Python, aprendiendo a mostrar información en la consola.",
+        "explanation": "Comencemos con una de las funciones más esenciales en Python: la función `print`. Esta función nos permite mostrar información en la consola y será su compañera constante a lo largo de su vida como programadores.\n\nEn este primer ejemplo, observamos cómo imprimir un texto básico. Noten que también es posible utilizar comillas simples para delimitar el texto. Además, la función `print` nos permite imprimir múltiples elementos separándolos por comas.\n\nExisten parámetros útiles como `sep`, que define cómo se separan los elementos impresos, y `end`, que determina qué carácter se imprime al final de la línea. Por defecto, `print` añade un salto de línea, pero podemos modificar este comportamiento.",
+        "concepts": "Uso de la función `print()`.\nManejo de cadenas de texto (strings) con comillas simples, dobles y triples.\nParámetros `sep` y `end` para controlar el formato de salida.",
+        "line_by_line": "1. Ejecuta el código tal como está para ver el saludo inicial.\n2. Modifica el mensaje dentro de `print()` para que diga tu nombre.\n3. Experimenta cambiando el separador `sep=\"-\"` por otro carácter.",
+        "errors": {}
+    },
+    "3": {
+        "summary": "Identificar y diferenciar los tipos de datos fundamentales en Python.",
+        "explanation": "Python maneja diversos tipos de datos. La función `type` es muy útil para identificar el tipo de un objeto.\n\nTenemos los números enteros, conocidos como `int`, que no tienen parte decimal. Pueden ser positivos, negativos o incluso el cero. Python es capaz de manejar enteros de gran tamaño sin problemas.\n\nLuego están los números de punto flotante, o `float`, que son números con decimales. También podemos usar notación científica para representarlos.",
+        "concepts": "Enteros (`int`), Flotantes (`float`), Complejos (`complex`).\nCadenas de texto (`str`) y Booleanos (`bool`).\nUso de la función `type()` para inspeccionar datos.",
+        "line_by_line": "1. Ejecuta el código para ver los tipos de datos de cada ejemplo.\n2. Intenta crear una nueva variable con un número decimal y verifica su tipo con `type()`.\n3. Observa la diferencia entre `10` (int) y `\"10\"` (str).",
+        "errors": {}
+    },
+    "4": {
+        "summary": "Aprender a transformar valores de un tipo de dato a otro (Casting).",
+        "explanation": "A menudo necesitamos transformar un valor de un tipo a otro. Esto se conoce como \"casting\".\n\nPor ejemplo, si tenemos una cadena que contiene un número, podemos convertirla a entero usando `int` para realizar operaciones matemáticas. De igual forma, podemos convertir un número a cadena usando `str` para concatenarlo con texto.\n\nPodemos convertir cadenas a números decimales con `float`. Si convertimos un decimal a entero, la parte decimal se truncará.",
+        "concepts": "Funciones de conversión: `int()`, `float()`, `str()`.\nComportamiento al convertir decimales a enteros (truncamiento).\nEvaluación de verdad (Truthiness) de diferentes valores.",
+        "line_by_line": "1. Ejecuta el código y analiza cómo cambian los valores tras la conversión.\n2. Intenta sumar el número `5` con la cadena `\"5\"` sin convertirla y observa el error.\n3. Corrige el error anterior usando `int(\"5\")`.",
+        "errors": {}
+    },
+    "5": {
+        "summary": "Entender cómo almacenar y manipular datos en memoria usando variables.",
+        "explanation": "Las variables son contenedores que nos permiten guardar datos en la memoria. Python es un lenguaje de tipado dinámico, lo que significa que no necesitamos declarar el tipo de variable explícitamente; el intérprete lo deduce en tiempo de ejecución.\n\nPara asignar una variable, simplemente escribimos su nombre y le damos un valor. Podemos reasignar un nuevo valor a una variable existente en cualquier momento.\n\nPython también es de tipado fuerte, lo que significa que no realiza conversiones automáticas de tipo que puedan perder información o causar ambigüedad.",
+        "concepts": "Asignación y reasignación de variables.\nTipado dinámico vs. Tipado fuerte.\nConvenciones de nombres (snake_case) y palabras reservadas.\nUso de f-strings para formatear texto con variables.",
+        "line_by_line": "1. Crea una variable con tu nombre y otra con tu edad.\n2. Usa una f-string para imprimir una frase presentándote.\n3. Intenta sumar tu nombre (str) con tu edad (int) y observa el error de tipado fuerte.",
+        "errors": {}
+    },
+    "6": {
+        "summary": "Interactuar con el usuario recibiendo datos desde la consola.",
+        "explanation": "La función `input` nos permite interactuar con el usuario obteniendo datos desde la consola. Esta función muestra un mensaje y espera a que el usuario escriba algo y presione Enter.\n\nEs crucial recordar que `input` siempre devuelve una cadena de texto. Si necesitamos un número, debemos convertir esa cadena explícitamente.",
+        "concepts": "Uso de la función `input()`.\nLos datos recibidos siempre son cadenas (`str`).\nConversión necesaria para trabajar con números ingresados.",
+        "line_by_line": "1. Ejecuta el código. Nota que los valores están \"hardcodeados\" para la demo.\n2. Descomenta las líneas con `input()` para probar la interacción real.\n3. Escribe un programa que pida dos números y muestre su suma.",
+        "errors": {}
+    },
+    "7": {
+        "summary": "Poner a prueba los conocimientos adquiridos en el módulo mediante retos prácticos.",
+        "explanation": "Es momento de poner en práctica lo aprendido. En este archivo `exercises.py` encontrarán una serie de retos.\n\nDeberán imprimir mensajes, determinar tipos de datos, realizar conversiones de tipos y trabajar con variables y f-strings. También practicarán operaciones numéricas básicas.",
+        "concepts": "Consolidación de `print`, variables, tipos y casting.\nResolución de problemas simples.",
+        "line_by_line": "1. Completa el Ejercicio 1 imprimiendo tu nombre y ciudad.\n2. En el Ejercicio 2, usa `type()` para identificar las variables.\n3. Realiza las conversiones pedidas en el Ejercicio 3.\n4. Crea tu presentación personal en el Ejercicio 4.\n5. Realiza los cálculos matemáticos del Ejercicio 5.",
+        "errors": {}
+    },
+    "8": {
+        "summary": "Controlar el flujo del programa tomando decisiones basadas en condiciones.",
+        "explanation": "Las sentencias condicionales nos permiten controlar el flujo del programa. Usamos `if` para ejecutar un bloque de código solo si se cumple una condición.\n\nSi la condición no se cumple, podemos usar `else` para ejecutar un bloque alternativo. Para evaluar múltiples condiciones en secuencia, utilizamos `elif`.",
+        "concepts": "Estructuras `if`, `elif`, `else`.\nOperadores de comparación y lógicos (`and`, `or`, `not`).\nIndentación como bloque de código.",
+        "line_by_line": "1. Modifica la variable `edad` y observa qué mensaje se imprime.\n2. Crea una condición que verifique si un número es par (usando `% 2 == 0`).\n3. Prueba la condición ternaria en una sola línea.",
+        "errors": {}
+    },
+    "9": {
+        "summary": "Comprender la lógica booleana y las tablas de verdad.",
+        "explanation": "Los booleanos son fundamentales para la lógica de programación. Representan los valores de verdad: `True` y `False`.\n\nLos operadores de comparación, como mayor que, menor que, igual o diferente, siempre devuelven un valor booleano.",
+        "concepts": "Valores `True` y `False`.\nResultado de comparaciones (`>`, `<`, `==`, `!=`).\nLógica combinatoria.",
+        "line_by_line": "1. Ejecuta el código y analiza los resultados de las comparaciones.\n2. Predice el resultado de `True and False` antes de ejecutarlo.\n3. Crea una expresión compleja combinando `and`, `or` y `not`.",
+        "errors": {}
+    },
+    "10": {
+        "summary": "Almacenar y manipular colecciones ordenadas de elementos.",
+        "explanation": "Las listas son secuencias mutables de elementos. Pueden contener elementos de cualquier tipo, incluso mezclados.\n\nPodemos acceder a los elementos de una lista mediante su índice, empezando por el cero. Los índices negativos nos permiten acceder desde el final.",
+        "concepts": "Creación de listas.\nAcceso por índice (positivo y negativo).\nSlicing (rebanado) para obtener sublistas.\nModificación de elementos.",
+        "line_by_line": "1. Crea una lista con tus 3 películas favoritas.\n2. Imprime la primera y la última película usando índices.\n3. Usa slicing para imprimir solo las dos primeras.",
+        "errors": {}
+    },
+    "11": {
+        "summary": "Dominar las herramientas integradas para modificar y gestionar listas.",
+        "explanation": "Python nos ofrece métodos potentes para trabajar con listas.\n\n`append` añade un elemento al final, mientras que `insert` lo coloca en una posición específica. `extend` nos permite agregar múltiples elementos de otra lista.\n\nPara eliminar, tenemos `remove`, que borra la primera aparición de un valor, y `pop`, que elimina y devuelve un elemento por su índice.",
+        "concepts": "Añadir elementos: `append`, `insert`, `extend`.\nEliminar elementos: `remove`, `pop`, `clear`.\nOrdenar (`sort`) y buscar (`index`, `count`).",
+        "line_by_line": "1. Resuelve el Ejercicio 1 añadiendo y modificando elementos.\n2. Practica la eliminación en el Ejercicio 2 y 3.\n3. Ordena la lista numérica en el Ejercicio 4.\n4. Entiende la diferencia entre copia y referencia en el Ejercicio 5.",
+        "errors": {}
+    },
+    "12": {
+        "summary": "Ejecutar código repetidamente basándose en una condición lógica.",
+        "explanation": "El bucle `while` permite ejecutar un bloque de código repetidamente mientras se cumpla una condición. Es vital asegurarse de que la condición eventualmente sea falsa para evitar bucles infinitos.\n\nLa sentencia `break` nos permite salir del bucle inmediatamente, mientras que `continue` salta a la siguiente iteración.",
+        "concepts": "Sintaxis `while`.\nEvitar bucles infinitos.\nControl de flujo con `break` y `continue`.",
+        "line_by_line": "1. Ejecuta el ejemplo del contador.\n2. Intenta escribir un bucle que cuente de 2 en 2 hasta 20.\n3. Resuelve el ejercicio de \"Validación de contraseña\" usando un `while`.",
+        "errors": {}
+    },
+    "13": {
+        "summary": "Iterar eficientemente sobre secuencias y colecciones.",
+        "explanation": "El bucle `for` es ideal para iterar sobre secuencias, como listas o cadenas de texto.\n\nLa función `enumerate` es muy útil cuando necesitamos tanto el índice como el valor del elemento.\n\nPodemos anidar bucles `for`, aunque debemos tener cuidado con la complejidad.",
+        "concepts": "Iteración sobre listas y cadenas.\nUso de `enumerate()` para obtener índice y valor.\nList Comprehensions (Comprensión de listas) para código conciso.",
+        "line_by_line": "1. Itera sobre la lista de frutas e imprime cada una.\n2. Usa `enumerate` para imprimir la posición de cada fruta.\n3. Convierte el bucle de \"números pares\" en una List Comprehension.",
+        "errors": {}
+    },
+    "14": {
+        "summary": "Generar secuencias numéricas para controlar bucles.",
+        "explanation": "La función `range` genera una secuencia de números, lo cual es extremadamente útil en bucles `for`.\n\nPodemos especificar el inicio, el fin y el paso de la secuencia. Recuerden que el valor final no se incluye en la secuencia.",
+        "concepts": "Función `range(inicio, fin, paso)`.\nGeneración de secuencias inversas.\nUso común en bucles `for`.",
+        "line_by_line": "1. Imprime los números del 0 al 9 usando `range(10)`.\n2. Genera una cuenta regresiva del 10 al 1.\n3. Resuelve el ejercicio de la tabla de multiplicar usando `range`.",
+        "errors": {}
+    },
+    "15": {
+        "summary": "Modularizar el código creando bloques reutilizables.",
+        "explanation": "Las funciones son bloques de código reutilizables. Nos permiten modularizar nuestros programas y evitar la repetición.\n\nDefinimos una función con la palabra clave `def`. Podemos especificar parámetros, valores por defecto y valores de retorno.",
+        "concepts": "Definición `def` y llamada de funciones.\nParámetros posicionales y nombrados.\nRetorno de valores (`return`).\nArgumentos variables `*args` y `**kwargs`.",
+        "line_by_line": "1. Define una función `saludar(nombre)` que imprima un saludo.\n2. Crea una función `sumar(a, b)` que devuelva la suma.\n3. Experimenta pasando argumentos por nombre.",
+        "errors": {}
+    },
+    "16": {
+        "summary": "Aplicar lógica de conteo y comparación de caracteres en strings.",
+        "explanation": "En este reto, deben crear una función que determine si una alianza está equilibrada. Deberán contar las apariciones de ciertos caracteres y comparar sus cantidades. Recuerden normalizar el texto a mayúsculas para facilitar el conteo.",
+        "concepts": "Manipulación de strings (`upper`).\nMétodo `.count()`.\nLógica condicional.",
+        "line_by_line": "1. Implementa la función `check_is_balanced`.\n2. Convierte el texto a mayúsculas.\n3. Cuenta las 'R' y las 'J'.\n4. Retorna `True` si son iguales o si ambas son 0.",
+        "errors": {}
+    },
+    "17": {
+        "summary": "Filtrar y sumar elementos de una lista basándose en una condición numérica.",
+        "explanation": "Aquí deben sumar los \"huevos de dinosaurios carnívoros\", que están representados por los números pares en una lista. Iteren sobre la lista y utilicen el operador módulo para filtrar los pares.",
+        "concepts": "Iteración de listas.\nOperador módulo `%` para paridad.\nAcumuladores.",
+        "line_by_line": "1. Inicializa una variable `suma` en 0.\n2. Recorre la lista de huevos.\n3. Si el número es par, súmalo a `suma`.\n4. Retorna el total.",
+        "errors": {}
+    },
+    "18": {
+        "summary": "Encontrar pares de números que cumplan una condición de suma.",
+        "explanation": "El objetivo es encontrar dos números en un array que sumen un valor objetivo. Pueden usar fuerza bruta con bucles anidados, o una solución más eficiente utilizando un diccionario para recordar los números ya vistos.",
+        "concepts": "Búsqueda en arrays.\nOptimización (fuerza bruta vs. diccionario).\nRetorno temprano.",
+        "line_by_line": "1. Implementa la función `find_first_sum`.\n2. Opción A (Fácil): Usa dos bucles `for` anidados para probar todas las parejas.\n3. Opción B (Eficiente): Usa un diccionario para guardar los números que ya has visto y busca su complemento.",
+        "errors": {}
+    },
+    "19": {
+        "summary": "Almacenar datos estructurados en pares clave-valor.",
+        "explanation": "Los diccionarios son colecciones de pares clave-valor. Son extremadamente útiles para almacenar datos estructurados.\n\nPodemos acceder a los valores mediante sus claves, modificar valores, añadir nuevos pares y eliminar entradas.",
+        "concepts": "Creación y acceso a diccionarios.\nMétodos `.keys()`, `.values()`, `.items()`.\nModificación y eliminación de claves.",
+        "line_by_line": "1. Crea un diccionario que te describa (nombre, edad, hobbies).\n2. Accede a tu edad e imprímela.\n3. Añade una nueva clave 'profesion'.\n4. Itera sobre el diccionario imprimiendo clave y valor.",
+        "errors": {}
+    },
+    "20": {
+        "summary": "Simular una lógica de enfrentamiento comparando listas elemento a elemento.",
+        "explanation": "En este reto final del módulo, simularán una batalla comparando elementos de dos listas. Implementen la lógica descrita para determinar el ganador basándose en las diferencias de poder.\n\n\n========================================\nMódulo 02: Conceptos Fundamentales\n========================================",
+        "concepts": "Iteración simultánea (o por índice).\nComparación condicional compleja.\nAcumulación de resultados.",
+        "line_by_line": "1. Implementa la función `battle`.\n2. Compara cada posición `i` de ambas listas.\n3. Si A gana, suma la diferencia al siguiente de A.\n4. Si B gana, suma al siguiente de B.\n5. Al final, suma los totales y decide el ganador.",
+        "errors": {}
+    },
+    "21": {
+        "summary": "Verificar la configuración del entorno y repasar la ejecución básica.",
+        "explanation": "Retomemos nuestro primer programa en Python. Este ejercicio sirve para verificar que nuestro entorno de ejecución está configurado correctamente. Es el primer paso esencial antes de adentrarnos en conceptos más complejos.",
+        "concepts": "Confirmación de entorno Python 3.\nEjecución de scripts.",
+        "line_by_line": "1. Ejecuta el script.\n2. Verifica que veas el saludo en la consola.",
+        "errors": {}
+    },
+    "22": {
+        "summary": "Profundizar en los tipos numéricos y su representación.",
+        "explanation": "En Python, trabajamos principalmente con tres tipos numéricos.\n\nPrimero, los enteros o `int`, que pueden ser positivos, negativos o cero.\n\nSegundo, los números de punto flotante o `float`, que representan valores decimales. Noten el uso de la notación científica con `e` para potencias de 10.",
+        "concepts": "Diferencia entre `int` y `float`.\nNotación científica (`e`).\nNúmeros complejos (`j`).",
+        "line_by_line": "1. Ejecuta el código.\n2. Observa cómo Python imprime los números grandes y la notación científica.\n3. Intenta crear un número complejo y sumar otro.",
+        "errors": {}
+    },
+    "23": {
+        "summary": "Escribir código resiliente que no se rompa ante errores inesperados.",
+        "explanation": "El manejo de errores es crucial para escribir código robusto. El bloque `try-except` nos permite capturar excepciones y evitar que nuestro programa se detenga abruptamente.",
+        "concepts": "Bloques `try`, `except`.\nCaptura de excepciones específicas.\nManejo de códigos de estado HTTP (en el ejemplo).",
+        "line_by_line": "1. Ejecuta el código.\n2. Cambia la URL a una que no exista para provocar un error.\n3. Observa cómo el bloque `except` captura el fallo elegantemente.",
+        "errors": {}
+    },
+    "24": {
+        "summary": "Documentar el código para mejorar su legibilidad y mantenimiento.",
+        "explanation": "El código se lee más veces de las que se escribe. Por eso, los comentarios son vitales.\n\nUsamos el símbolo almohadilla para comentarios de una sola línea. Para bloques más extensos, aunque no existen oficialmente, solemos usar cadenas multilínea.",
+        "concepts": "Comentarios de línea `#`.\nDocstrings `\"\"\"...\"\"\"` para funciones.\nAcceso a documentación con `__doc__`.",
+        "line_by_line": "1. Lee los comentarios en el código.\n2. Añade un comentario explicando qué hace una línea.\n3. Modifica el docstring de la función `saludar` y ejecútalo.",
+        "errors": {}
+    },
+    "25": {
+        "summary": "Practicar la conversión explícita entre tipos numéricos.",
+        "explanation": "A veces necesitamos convertir entre tipos numéricos.\n\nPodemos transformar enteros a flotantes, flotantes a enteros (perdiendo la parte decimal) e incluso números a complejos.",
+        "concepts": "`float()` a `int()` (pérdida de precisión).\n`int()` a `float()`.\nConversión a `complex()`.",
+        "line_by_line": "1. Ejecuta el código.\n2. Observa qué pasa con los decimales cuando conviertes un float negativo a int.",
+        "errors": {}
+    },
+    "26": {
+        "summary": "Explorar sistemas numéricos alternativos y precisión decimal.",
+        "explanation": "Profundicemos en los números.\n\nEs importante saber que la aritmética de punto flotante puede tener pequeñas imprecisiones debido a cómo se representan los números en binario. Para precisión exacta, como en finanzas, usamos el módulo `decimal`.",
+        "concepts": "Módulo `decimal` para precisión financiera.\nBinario (`0b`), Octal (`0o`), Hexadecimal (`0x`).\nProblemas de precisión de punto flotante.",
+        "line_by_line": "1. Ejecuta el código y sorpréndete con `1.1 + 2.2`.\n2. Usa `Decimal` para corregir esa suma.\n3. Convierte un número decimal a binario con `bin()`.",
+        "errors": {}
+    },
+    "27": {
+        "summary": "Manipular texto básico y entender la inmutabilidad de los strings.",
+        "explanation": "Las cadenas de texto son secuencias de caracteres. Podemos usar comillas simples, dobles o triples.\n\nLa concatenación nos permite unir cadenas con el operador `+`. Sin embargo, no podemos concatenar directamente un número con una cadena; debemos convertir el número primero.",
+        "concepts": "Concatenación.\nLongitud `len()`.\nConversión de números a string para concatenar.",
+        "line_by_line": "1. Ejecuta el código.\n2. Intenta concatenar un número directamente a un string y corrige el error.\n3. Crea un string multilínea con tu dirección.",
+        "errors": {}
+    },
+    "28": {
+        "summary": "Presentar datos de forma legible y estructurada.",
+        "explanation": "Dar formato a las cadenas es esencial para presentar datos.\n\nTenemos el operador antiguo `%`, el método `.format()` que ofrece gran flexibilidad con argumentos posicionales y nombrados, y las modernas `f-strings`, que son la forma más recomendada y legible.",
+        "concepts": "Operador `%` (Legacy).\nMétodo `.format()`.\nf-strings (Moderno y recomendado).",
+        "line_by_line": "1. Ejecuta los ejemplos.\n2. Usa f-strings para imprimir \"Hola, soy [Nombre] y vivo en [Ciudad]\".\n3. Prueba el formateo de decimales con `:.2f`.",
+        "errors": {}
+    },
+    "29": {
+        "summary": "Utilizar métodos integrados para procesar y validar texto.",
+        "explanation": "La clase `str` tiene multitud de métodos útiles.\n\nPodemos cambiar mayúsculas y minúsculas con `lower`, `upper` y `capitalize`.\n\nPodemos verificar el contenido con `isalnum`, `isalpha`, `isnumeric`, entre otros.",
+        "concepts": "Transformación: `upper`, `lower`, `capitalize`.\nValidación: `isalpha`, `isnumeric`.\nManipulación: `split`, `join`, `replace`.",
+        "line_by_line": "1. Ejecuta el código.\n2. Convierte tu nombre completo a mayúsculas.\n3. Usa `split` para separar una frase en palabras.\n4. Valida si un string es un número válido.",
+        "errors": {}
+    },
+    "30": {
+        "summary": "Tomar decisiones complejas en el código.",
+        "explanation": "Las estructuras de control dirigen el flujo de nuestro programa.\n\nEl bloque `if-elif-else` nos permite tomar decisiones. Recuerden que `elif` nos permite evaluar múltiples condiciones en secuencia.",
+        "concepts": "Lógica `if-elif-else`.\nValidación de entradas.\nManejo de casos por defecto (`else`).",
+        "line_by_line": "1. Cambia la variable `url` a diferentes valores ('http', 'https', vacía).\n2. Observa qué bloque se ejecuta en cada caso.\n3. Añade una nueva condición para detectar dominios '.com'.",
+        "errors": {}
+    },
+    "31": {
+        "summary": "Implementar lógica de repetición con condiciones de salida complejas.",
+        "explanation": "El bucle `while` puede ser más complejo. Podemos anidar condiciones dentro de él.\n\nUn patrón común es usar un bucle infinito `while True` y romperlo con `break` cuando se cumple una condición deseada.",
+        "concepts": "Bucle `while` con `else`.\nUso de `break` para salir prematuramente.\nValidación de entrada de usuario.",
+        "line_by_line": "1. Ejecuta el simulador de adivinanza.\n2. Descomenta la parte interactiva para jugar tú mismo.\n3. Implementa un límite de intentos.",
+        "errors": {}
+    },
+    "32": {
+        "summary": "Iterar sobre estructuras de datos complejas como diccionarios.",
+        "explanation": "El bucle `for` itera sobre secuencias.\n\nPodemos iterar sobre las claves de un diccionario. También podemos usar `else` con un bucle `for`.",
+        "concepts": "Iteración de claves de diccionario.\nFormateo de salida en bucles.",
+        "line_by_line": "1. Ejecuta el código para ver los puertos.\n2. Añade un nuevo puerto al diccionario.\n3. Modifica el bucle para imprimir también el protocolo en mayúsculas.",
+        "errors": {}
+    },
+    "33": {
+        "summary": "Dominar la generación de secuencias numéricas para iteraciones.",
+        "explanation": "La función `range` es versátil. Genera secuencias de enteros y es la compañera ideal del bucle `for`.\n\nRecuerden que `range` solo acepta enteros. No intenten pasarle flotantes o cadenas.",
+        "concepts": "`range` con paso positivo y negativo.\nIteración por índice usando `range(len(lista))`.",
+        "line_by_line": "1. Ejecuta los ejemplos de `range`.\n2. Crea un bucle que imprima los múltiplos de 5 del 0 al 50.\n3. Itera sobre la lista de puertos usando su índice.",
+        "errors": {}
+    },
+    "34": {
+        "summary": "Afinar el control sobre la ejecución de los bucles.",
+        "explanation": "Tenemos control total sobre nuestros bucles.\n\n`break` termina el bucle inmediatamente.\n`continue` salta el resto de la iteración actual y vuelve al inicio.",
+        "concepts": "`break`: Detener el bucle.\n`continue`: Saltar iteración.\n`pass`: Placeholder.",
+        "line_by_line": "1. Ejecuta el código de escaneo de puertos simulado.\n2. Observa cómo `continue` salta los puertos web.\n3. Observa cómo `break` detiene el escaneo al encontrar SSH.",
+        "errors": {}
+    },
+    "35": {
+        "summary": "Escribir código más conciso usando expresiones ternarias.",
+        "explanation": "Para condiciones simples, podemos usar expresiones condicionales en una sola línea. Esto hace el código más conciso, pero úsenlo con moderación para no sacrificar la legibilidad.",
+        "concepts": "Sintaxis: `valor_si if condicion else valor_no`.\nLegibilidad vs. Concisión.",
+        "line_by_line": "1. Ejecuta los ejemplos.\n2. Escribe una expresión ternaria que asigne \"Par\" o \"Impar\" a una variable según un número.",
+        "errors": {}
+    },
+    "36": {
+        "summary": "Realizar cálculos matemáticos fundamentales.",
+        "explanation": "Python soporta todas las operaciones matemáticas estándar: suma, resta, multiplicación y división.\n\nNoten la diferencia entre la división normal `/`, que devuelve un flotante, y la división entera `//`, que descarta la parte decimal.",
+        "concepts": "Operadores básicos: `+`, `-`, `*`, `/`.\nDivisión entera `//` y Módulo `%`.\nPotencia `**`.",
+        "line_by_line": "1. Ejecuta las operaciones.\n2. Calcula el resto de dividir 21 entre 5.\n3. Calcula 2 elevado a la 10.",
+        "errors": {}
+    },
+    "37": {
+        "summary": "Comparar valores para lógica booleana.",
+        "explanation": "Estos operadores comparan dos valores y devuelven un booleano. Funcionan con números y también con cadenas (basándose en el orden alfabético/ASCII).",
+        "concepts": "Comparación numérica.\nComparación de strings (orden lexicográfico).",
+        "line_by_line": "1. Ejecuta las comparaciones.\n2. Compara dos strings: \"Python\" y \"Java\". ¿Cuál es mayor?\n3. Verifica si 10 es distinto de \"10\".",
+        "errors": {}
+    },
+    "38": {
+        "summary": "Modificar variables de forma eficiente.",
+        "explanation": "Más allá del simple `=`, tenemos operadores de asignación compuesta como `+=`, `-=`, `*=`, etc. Estos realizan la operación y actualizan la variable en un solo paso.",
+        "concepts": "Asignación simple `=`.\nAsignación compuesta `+=`, `-=`, `*=`.",
+        "line_by_line": "1. Ejecuta el código.\n2. Usa `+=` para incrementar una variable contador.\n3. Usa `*=` para duplicar el valor de una variable.",
+        "errors": {}
+    },
+    "39": {
+        "summary": "Combinar condiciones booleanas.",
+        "explanation": "`and`, `or` y `not` son la base de la lógica booleana en Python. Nos permiten construir condiciones complejas.",
+        "concepts": "`and`: Ambos deben ser ciertos.\n`or`: Al menos uno cierto.\n`not`: Inversión.",
+        "line_by_line": "1. Ejecuta las pruebas lógicas.\n2. Evalúa: `True and False or True`.\n3. Usa `not` para invertir una condición.",
+        "errors": {}
+    },
+    "40": {
+        "summary": "Entender la diferencia entre igualdad de valor e identidad de objeto.",
+        "explanation": "Aquí hay una distinción sutil pero importante: `==` compara valores, mientras que `is` compara identidad (si son el mismo objeto en memoria).",
+        "concepts": "`is`: ¿Son el mismo objeto en memoria?\n`==`: ¿Tienen el mismo valor?\nMutabilidad e identidad.",
+        "line_by_line": "1. Ejecuta el código.\n2. Crea dos listas idénticas y compáralas con `is` y `==`.\n3. Asigna una lista a otra variable (`a = b`) y compáralas con `is`.",
+        "errors": {}
+    },
+    "41": {
+        "summary": "Conocer las estructuras principales para organizar datos.",
+        "explanation": "Las estructuras de datos organizan nuestra información.\n\nLas Listas son ordenadas y mutables.\nLas Tuplas son ordenadas e inmutables.\nLos Diccionarios son pares clave-valor.\nLos Conjuntos (Sets) son colecciones no ordenadas de elementos únicos.",
+        "concepts": "Listas `[]`: Ordenadas, mutables.\nTuplas `()`: Ordenadas, inmutables.\nDiccionarios `{k:v}`: Clave-valor.\nConjuntos `{}`: Únicos, desordenados.",
+        "line_by_line": "1. Ejecuta el código de ejemplo.\n2. Crea una lista, una tupla, un set y un diccionario vacíos.\n3. Verifica sus tipos con `type()`.",
+        "errors": {}
+    },
+    "42": {
+        "summary": "Manipulación avanzada de listas.",
+        "explanation": "Profundicemos en las listas. Podemos verificar existencia con `in`, acceder por índices positivos o negativos, y usar \"slicing\" avanzado.",
+        "concepts": "Slicing complejo.\nMétodos de búsqueda y ordenamiento.\nGestión de memoria (copias).",
+        "line_by_line": "1. Ejecuta las operaciones de lista.\n2. Usa slicing para invertir la lista de puertos.\n3. Ordena la lista de puertos de mayor a menor.",
+        "errors": {}
+    },
+    "43": {
+        "summary": "Modelar datos complejos con diccionarios anidados.",
+        "explanation": "Los diccionarios son increíblemente flexibles. Pueden contener listas u otros diccionarios anidados.\n\nMétodos como `keys()`, `values()` e `items()` nos permiten iterar sobre ellos de diferentes formas.",
+        "concepts": "Estructuras anidadas (JSON-like).\nMétodos de acceso seguro `.get()`.\nActualización y fusión de diccionarios.",
+        "line_by_line": "1. Ejecuta el código de empleados.\n2. Añade un nuevo proyecto al empleado 100.\n3. Usa `.get()` para acceder a una clave que podría no existir.",
+        "errors": {}
+    },
+    "44": {
+        "summary": "Trabajar con colecciones inmutables.",
+        "explanation": "Las tuplas, al ser inmutables, son útiles para datos que no deben cambiar. Pueden contener cualquier tipo de dato. Aunque no podemos modificarlas, podemos concatenarlas o crear nuevas tuplas a partir de ellas.",
+        "concepts": "Creación y desempaquetado.\nInmutabilidad (protección de datos).\nConversión lista-tupla.",
+        "line_by_line": "1. Crea una tupla con coordenadas GPS.\n2. Intenta modificar un valor y observa el error.\n3. Concatena dos tuplas.",
+        "errors": {}
+    },
+    "45": {
+        "summary": "Manejar colecciones de elementos únicos y operaciones de conjuntos.",
+        "explanation": "Los conjuntos son ideales cuando necesitamos unicidad y operaciones matemáticas de conjuntos como unión, intersección y diferencia. No tienen orden, así que no podemos acceder por índice.",
+        "concepts": "Eliminación de duplicados.\nUnión, Intersección, Diferencia.\nPertenencia eficiente.",
+        "line_by_line": "1. Crea un set a partir de una lista con duplicados.\n2. Realiza la unión de dos sets.\n3. Encuentra la intersección (elementos comunes).",
+        "errors": {}
+    },
+    "46": {
+        "summary": "Escribir funciones con lógica condicional y retorno.",
+        "explanation": "Las funciones son esenciales para la modularidad. Recuerden que pueden devolver valores y que las variables definidas dentro de ellas tienen un ámbito local.",
+        "concepts": "Funciones que retornan booleanos.\nÁmbito de variables.\nReutilización de código.",
+        "line_by_line": "1. Implementa la función `es_par`.\n2. Llama a la función con diferentes números.\n3. Usa el resultado en un `if`.",
+        "errors": {}
+    },
+    "47": {
+        "summary": "Aplicar programación funcional para procesar datos.",
+        "explanation": "Python ofrece herramientas funcionales como `lambda`, `map` y `filter`.\n\nLas funciones `lambda` son funciones anónimas pequeñas. `map` aplica una función a cada elemento de un iterable, y `filter` selecciona elementos que cumplen una condición.",
+        "concepts": "`lambda`: Funciones anónimas.\n`map`: Transformación.\n`filter`: Filtrado.\n`sorted` con clave personalizada.",
+        "line_by_line": "1. Ordena la lista de personas por edad.\n2. Usa `map` para crear una lista de solo nombres.\n3. Usa `filter` para obtener personas mayores de 60 años.",
+        "errors": {}
+    },
+    "48": {
+        "summary": "Conocer la \"caja de herramientas\" estándar de Python.",
+        "explanation": "Python viene con \"baterías incluidas\". Funciones como `abs`, `bool`, `input` y muchas otras están siempre disponibles sin necesidad de importar nada.",
+        "concepts": "`abs()`, `bool()`, `input()`.\n`locals()` para depuración.",
+        "line_by_line": "1. Calcula el valor absoluto de un número negativo.\n2. Usa `locals()` para ver las variables definidas en el entorno actual.",
+        "errors": {}
+    },
+    "49": {
+        "summary": "Introducción al reconocimiento de patrones en texto.",
+        "explanation": "Las expresiones regulares son un lenguaje en sí mismo para buscar patrones en texto. Son extremadamente potentes para validaciones y extracción de información.",
+        "concepts": "Módulo `re`.\nPatrones básicos.\nValidación de formatos (como URLs).",
+        "line_by_line": "1. Ejecuta el validador de URLs.\n2. Añade una URL inválida a la lista y ve si la detecta.\n3. Intenta modificar el patrón para aceptar FTP.",
+        "errors": {}
+    },
+    "50": {
+        "summary": "Comprender los fundamentos de la Programación Orientada a Objetos (POO).",
+        "explanation": "La programación orientada a objetos nos permite modelar el mundo real.\n\nUna clase es una plantilla. Un objeto es una instancia de esa clase.\nLos atributos son datos, y los métodos son comportamientos.\n\n========================================\nMódulo 03: Práctica de Algoritmos\n========================================",
+        "concepts": "Clases vs. Objetos.\nAtributos y Métodos.\nConstructor `__init__`.",
+        "line_by_line": "1. Define una clase simple (ej. `Perro`).\n2. Crea dos instancias (objetos) de esa clase.\n3. Define un método `ladrar` y llámalo.",
+        "errors": {}
+    },
+    "51": {
+        "summary": "Simular la obtención y procesamiento de datos complejos (JSON) desde una API externa.",
+        "explanation": "En el mundo real, interactuamos constantemente con APIs que nos devuelven datos en formato JSON. Este ejercicio simula una respuesta de una API del clima.\n\nSu tarea es comprender cómo extraer información específica de estructuras anidadas, como diccionarios dentro de listas dentro de diccionarios. También realizaremos conversiones prácticas, como pasar de Kelvin a grados Celsius.",
+        "concepts": "Estructuras de datos anidadas (JSON).\nConversión de unidades (Kelvin a Celsius).\nManejo de fechas y horas (timestamps).",
+        "line_by_line": "1. Ejecuta el código para ver el reporte del clima simulado.\n2. Modifica el diccionario `weather_data` cambiando la temperatura o la ciudad.\n3. Observa cómo el script procesa y muestra los nuevos datos.",
+        "errors": {}
+    },
+    "52": {
+        "summary": "Crear una herramienta de conversión con manejo de errores de entrada.",
+        "explanation": "Vamos a construir una utilidad clásica: un conversor de temperatura.\n\nMás allá de la fórmula matemática, lo interesante aquí es cómo protegemos nuestro programa. Usamos un bloque `try-except` para asegurarnos de que, si el usuario introduce algo que no es un número, el programa no se rompa y muestre un mensaje amigable.",
+        "concepts": "Definición de funciones matemáticas.\nBloques `try-except` para validar entradas de usuario.\nFórmulas de conversión.",
+        "line_by_line": "1. Ejecuta el código.\n2. Cambia el valor de la variable `fahr` para probar otras temperaturas.\n3. Intenta asignar un texto a `fahr` para verificar que el manejo de errores funciona.",
+        "errors": {}
+    },
+    "53": {
+        "summary": "Implementar un sistema de almacenamiento clave-valor básico usando Clases.",
+        "explanation": "Aquí empezamos a pensar como ingenieros de software. Vamos a crear una clase `DB` que simula una base de datos en memoria.\n\nAprenderán a encapsular la lógica dentro de métodos como `set`, `get` y `delete`. También es crucial validar los datos antes de procesarlos, asegurándonos de que las claves sean del tipo correcto.",
+        "concepts": "Programación Orientada a Objetos (Clases y Métodos).\nManejo de diccionarios como almacenamiento.\nValidación de tipos con `isinstance`.\nLanzamiento de errores personalizados (`raise`).",
+        "line_by_line": "1. Ejecuta el código para ver cómo se añaden y recuperan empleados.\n2. Intenta añadir un empleado con una clave que no sea un entero (ej. \"105\") y observa el error.\n3. Implementa un método `update` en la clase `DB`.",
+        "errors": {}
+    },
+    "54": {
+        "summary": "Simular una interfaz de línea de comandos para interactuar con nuestra base de datos.",
+        "explanation": "Las bases de datos reales a menudo se gestionan mediante comandos. En este ejercicio, extendemos nuestra clase `DB` para simular un entorno de línea de comandos.\n\nVeremos cómo estructurar un programa con una función `main` que orquesta las operaciones, simulando la interacción de un usuario que escribe comandos para gestionar registros.",
+        "concepts": "Estructura de una aplicación de consola.\nFlujo de ejecución principal (`main`).\nInteracción simulada de comandos.",
+        "line_by_line": "1. Ejecuta el código.\n2. Observa cómo se simulan las operaciones SET, GET y DELETE.\n3. Añade una nueva operación simulada para un empleado ID 106.",
+        "errors": {}
+    },
+    "55": {
+        "summary": "Añadir persistencia de datos guardando la información en un archivo.",
+        "explanation": "Hasta ahora, nuestros datos se perdían al cerrar el programa. Ahora introducimos la persistencia.\n\nUsaremos el formato JSON para guardar nuestra base de datos en un archivo en disco. Esto permite que la información sobreviva entre ejecuciones del programa, un concepto fundamental en cualquier aplicación real.",
+        "concepts": "Persistencia de datos.\nMódulo `json` (`load` y `dump`).\nManejo de archivos (`open`, `with`).",
+        "line_by_line": "1. Ejecuta el código. Se creará un archivo `db.json`.\n2. Abre `db.json` y verifica su contenido.\n3. Ejecuta el código de nuevo; debería cargar los datos existentes en lugar de empezar de cero.",
+        "errors": {}
+    },
+    "56": {
+        "summary": "Consolidar el concepto de persistencia y operaciones CRUD (Crear, Leer, Actualizar, Borrar).",
+        "explanation": "Este ejercicio es la culminación de nuestro sistema de base de datos. Combinamos la estructura de clases, el manejo de errores y la persistencia en archivos.\n\nEl objetivo es que entiendan cómo las aplicaciones modernas guardan y recuperan su estado, permitiendo una continuidad en el uso.",
+        "concepts": "Ciclo completo de vida de los datos.\nRecuperación de estado.\nManejo robusto de archivos.",
+        "line_by_line": "1. Ejecuta el código.\n2. Modifica el script para que, al iniciar, imprima todos los registros cargados.\n3. Prueba a borrar el archivo `db.json` manualmente y reinicia el programa.",
+        "errors": {}
+    },
+    "57": {
+        "summary": "Implementar un algoritmo matemático clásico para determinar primalidad.",
+        "explanation": "Determinar si un número es primo es un problema clásico de algoritmia.\n\nUn número primo solo es divisible por 1 y por sí mismo. Usaremos un bucle para intentar dividir el número por todos los valores menores a él. Si encontramos un divisor, sabemos que no es primo y usamos `break` para detenernos.",
+        "concepts": "Lógica algorítmica.\nBucle `for` con `else`.\nOperador módulo `%`.",
+        "line_by_line": "1. Ejecuta el código con el número 29.\n2. Cambia `num` a 30 y verifica el resultado.\n3. Intenta optimizar el bucle para que solo llegue hasta la raíz cuadrada del número.",
+        "errors": {}
+    },
+    "58": {
+        "summary": "Generar una lista de los primeros N números primos.",
+        "explanation": "Ahora escalaremos nuestro algoritmo. En lugar de verificar un solo número, vamos a generar una lista de los primeros N números primos.\n\nUsaremos un bucle `while` que no se detendrá hasta que hayamos encontrado la cantidad deseada de primos, reutilizando nuestra lógica de verificación anterior.",
+        "concepts": "Reutilización de funciones.\nBucles `while True` infinitos controlados.\nListas dinámicas.",
+        "line_by_line": "1. Ejecuta el código para generar los primeros 10 primos.\n2. Aumenta `nprimes` a 50.\n3. Observa cómo el tiempo de ejecución aumenta ligeramente.",
+        "errors": {}
+    },
+    "59": {
+        "summary": "Encontrar todos los números primos dentro de un intervalo específico.",
+        "explanation": "En este variante, buscamos primos dentro de un rango definido por el usuario (o variables).\n\nEsto requiere anidar bucles: uno para recorrer los números del rango y otro interno para verificar la primalidad de cada uno. Es un excelente ejercicio para entender la complejidad computacional.",
+        "concepts": "Bucles anidados.\nValidación de rangos.\nOptimización de búsqueda.",
+        "line_by_line": "1. Ejecuta el código para el rango 10 a 50.\n2. Prueba con un rango más grande, por ejemplo, 100 a 200.\n3. Asegúrate de que el script maneje correctamente si el inicio es mayor que el fin.",
+        "errors": {}
+    },
+    "60": {
+        "summary": "Resolver el problema \"Two Sum\", un clásico de entrevistas técnicas.",
+        "explanation": "Este es un problema famoso: dado un array y un número objetivo, encontrar los índices de los dos números que suman ese objetivo.\n\nLa solución ingenua usaría dos bucles, pero aquí aprenderemos una técnica avanzada usando un diccionario para hacerlo en una sola pasada, lo que es mucho más eficiente.\n\n\n========================================\nMódulo 04: Automatización y Scripts\n========================================",
+        "concepts": "Uso de diccionarios para búsqueda eficiente O(n).\nAlgoritmos de optimización.\nManejo de índices y valores.",
+        "line_by_line": "1. Ejecuta el código.\n2. Cambia el `target` a otro valor que sea suma de dos números en la lista.\n3. Intenta entender por qué usamos un diccionario (`index_dict`) en lugar de dos bucles.",
+        "errors": {}
+    },
+    "61": {
+        "summary": "Generar activos gráficos programáticamente usando librerías externas.",
+        "explanation": "Entramos en el mundo de la automatización creativa. Python tiene un ecosistema gigante de librerías.\n\nEn este ejercicio, usamos una librería para generar avatares. Esto demuestra cómo podemos crear contenido visual de forma automática, útil para generar perfiles de usuario por defecto, por ejemplo.",
+        "concepts": "Uso de librerías de terceros (`py_avataaars`).\nGeneración de archivos SVG y PNG.\nDependencias del sistema (Cairo).",
+        "line_by_line": "1. Ejecuta el código en tu entorno local.\n2. Busca los archivos `basic_avatar.png` y `.svg` generados.\n3. Si falla, verifica que tengas instaladas las librerías necesarias.",
+        "errors": {}
+    },
+    "62": {
+        "summary": "Configurar parámetros específicos para personalizar la generación de activos.",
+        "explanation": "La personalización es clave. Aquí no solo generamos un avatar genérico, sino que configuramos cada aspecto: color de piel, tipo de ropa, accesorios, etc.\n\nAprenderán a leer la documentación de una librería para saber qué opciones (Enums) tienen disponibles para configurar sus objetos.",
+        "concepts": "Uso de Enums y constantes de configuración.\nPaso de parámetros detallados a constructores.",
+        "line_by_line": "1. Ejecuta el código.\n2. Modifica los parámetros: cambia `hair_color` a `BLONDE` o `top_type` a otro estilo.\n3. Genera tu propio avatar personalizado.",
+        "errors": {}
+    },
+    "63": {
+        "summary": "Explorar librerías alternativas y características avanzadas como texto en gráficos.",
+        "explanation": "A veces existen múltiples herramientas para una misma tarea. Aquí probamos una variante que nos permite poner texto personalizado en la ropa del avatar.\n\nEsto es útil para generar badges o identificaciones personalizadas de forma masiva.",
+        "concepts": "Comparación de librerías similares.\nInserción de texto dinámico en imágenes.",
+        "line_by_line": "1. Ejecuta el código.\n2. Cambia el texto de la camiseta (`shirt_text`) por tu nombre.\n3. Observa el archivo SVG generado.",
+        "errors": {}
+    },
+    "64": {
+        "summary": "Generar variaciones masivas de contenido de forma aleatoria.",
+        "explanation": "La automatización brilla cuando necesitamos cantidad. Imaginen que necesitan poblar una base de datos de prueba con 1000 usuarios, cada uno con una foto de perfil única.\n\nCon este script, podemos generar infinitas variaciones aleatorias, o variaciones controladas (ej. todos con sombrero pero diferente ropa).",
+        "concepts": "Métodos estáticos de generación (`.random()`).\nFijar ciertos atributos mientras se aleatorizan otros.\nGeneración por lotes.",
+        "line_by_line": "1. Ejecuta el script.\n2. Se generarán 3 avatares diferentes.\n3. Modifica el código para generar un bucle que cree 10 avatares distintos.",
+        "errors": {}
+    },
+    "65": {
+        "summary": "Generar una mini-aplicación web (HTML/JS) desde Python.",
+        "explanation": "Python no solo sirve para backend. Puede generar el código para el frontend.\n\nEn este ejercicio, nuestro script de Python escribe un archivo HTML completo con CSS y JavaScript incrustados. Es un ejemplo básico de cómo un script puede construir otras herramientas o reportes web.",
+        "concepts": "Generación de código fuente (HTML/JS) mediante strings en Python.\nEscritura de archivos.\nConcepto de \"Infraestructura como Código\" a pequeña escala.",
+        "line_by_line": "1. Ejecuta el código.\n2. Abre el archivo `reloj_digital.html` en tu navegador.\n3. Modifica el código Python para que el reloj tenga fondo blanco y texto negro.",
+        "errors": {}
+    },
+    "66": {
+        "summary": "Crear un temporizador interactivo inyectando variables de Python en JavaScript.",
+        "explanation": "Aquí vamos un paso más allá. Usamos Python para configurar la lógica del JavaScript.\n\nLa variable `seconds` se define en Python, pero se inyecta dentro del código JavaScript que escribimos en el archivo HTML. Esto demuestra cómo pasar datos de configuración desde el backend al frontend generado.",
+        "concepts": "Interpolación de variables Python en strings (f-strings).\nLógica de cuenta regresiva en JS generada por Python.",
+        "line_by_line": "1. Ejecuta el código.\n2. Abre el archivo generado.\n3. Cambia la variable `seconds` en Python a 60 y regenera el archivo.",
+        "errors": {}
+    },
+    "67": {
+        "summary": "Generar un reloj que muestre fecha y hora, practicando el formateo de fechas.",
+        "explanation": "Continuamos explorando la generación de interfaces. Este reloj incluye la fecha completa.\n\nEl aprendizaje clave es la capacidad de Python para orquestar la creación de interfaces de usuario estáticas que tienen comportamiento dinámico gracias al JavaScript inyectado.",
+        "concepts": "Objeto `Date` en JavaScript.\nEstilizado CSS para simular displays digitales.",
+        "line_by_line": "1. Ejecuta el script.\n2. Abre el HTML resultante.\n3. Observa cómo la fecha se formatea dinámicamente.",
+        "errors": {}
+    },
+    "68": {
+        "summary": "Visualizar datos complejos (zonas horarias) en una interfaz generada.",
+        "explanation": "Este es un ejemplo de un \"Dashboard\" o tablero de control.\n\nPython define la lista de ciudades y zonas horarias, y genera un HTML que itera sobre esos datos para crear múltiples relojes. Es muy similar a cómo funcionan los motores de plantillas web.",
+        "concepts": "Arrays y bucles en JavaScript generados.\nManejo de zonas horarias (`Intl.DateTimeFormat`).\nDiseño Grid en CSS.",
+        "line_by_line": "1. Ejecuta el código.\n2. Abre el tablero de relojes mundiales.\n3. Añade \"Madrid\" con zona \"Europe/Madrid\" a la lista `zones` en el string de Python.",
+        "errors": {}
+    },
+    "69": {
+        "summary": "Interactuar con hardware (webcam) y procesar imágenes.",
+        "explanation": "Python es excelente para visión por computador. Usamos OpenCV para acceder a la cámara web.\n\nEn un entorno de servidor (headless), no podemos abrir ventanas, así que capturamos la imagen y la guardamos directamente en disco. Esto es la base para sistemas de vigilancia o fotomatones automáticos.",
+        "concepts": "Librería `opencv` (`cv2`).\nAcceso a dispositivos de hardware.\nCaptura y guardado de frames.",
+        "line_by_line": "1. Ejecuta el código (requiere webcam).\n2. Busca el archivo `cam_capture.jpg`.\n3. Si no tienes cámara, el script manejará el error elegantemente.",
+        "errors": {}
+    },
+    "70": {
+        "summary": "Aplicar filtros de procesamiento de imagen para efectos artísticos.",
+        "explanation": "El procesamiento de imágenes es una rama fascinante. Aquí tomamos una imagen existente y le aplicamos filtros para darle un aspecto de \"caricatura\".\n\nUsamos la librería Pillow, que es el estándar de facto para manipulación de imágenes en Python. Combinamos detección de bordes con suavizado para lograr el efecto.",
+        "concepts": "Librería `Pillow` (PIL).\nFiltros de imagen (`CONTOUR`, `SMOOTH`).\nMezcla de imágenes (`blend`).",
+        "line_by_line": "1. Ejecuta el código.\n2. Observa cómo se genera primero un avatar y luego se transforma.\n3. Prueba a cambiar el filtro `CONTOUR` por `FIND_EDGES`.",
+        "errors": {}
+    },
+    "71": {
+        "summary": "Crear una herramienta interactiva de edición de imágenes basada en web.",
+        "explanation": "En lugar de procesar la imagen con Python (que es costoso computacionalmente), aquí generamos una interfaz web que usa filtros CSS.\n\nEsto descarga el trabajo al navegador del usuario. Es una lección importante sobre cuándo procesar en el servidor (Python) y cuándo en el cliente (Navegador).",
+        "concepts": "Filtros CSS (`grayscale`, `sepia`, `blur`).\nInteracción usuario-interfaz mediante botones.",
+        "line_by_line": "1. Ejecuta el script.\n2. Abre el editor web generado.\n3. Prueba los diferentes botones para aplicar filtros en tiempo real.",
+        "errors": {}
+    },
+    "72": {
+        "summary": "Consumir una API pública para generar códigos QR.",
+        "explanation": "No siempre necesitamos reinventar la rueda. Para generar un QR, podemos usar una API existente.\n\nHacemos una petición GET a un servicio externo, recibimos la imagen en formato binario y la guardamos en nuestro disco. Es un ejemplo perfecto de integración de servicios.",
+        "concepts": "Peticiones HTTP con `requests`.\nManejo de respuestas binarias (imágenes).\nGuardado de streams de datos en archivos.",
+        "line_by_line": "1. Ejecuta el código.\n2. Escanea el código QR generado con tu móvil; debería llevarte a python.org.\n3. Cambia la variable `data` por tu perfil de LinkedIn y regenera.",
+        "errors": {}
+    },
+    "73": {
+        "summary": "Extraer metadatos y propiedades técnicas de una imagen.",
+        "explanation": "Analizar imágenes es el primer paso para procesarlas. Con Pillow, podemos leer metadatos como el tamaño, el formato (PNG, JPG) y el modo de color.\n\nTambién realizamos una operación simple: convertir la imagen a escala de grises (\"L\"), lo cual es útil para pre-procesamiento en IA.",
+        "concepts": "Lectura de metadatos (formato, tamaño, modo).\nConversión de modos de color (RGB a Escala de grises).",
+        "line_by_line": "1. Asegúrate de tener la imagen `qr_code.png` del ejercicio anterior.\n2. Ejecuta el código.\n3. Observa la información técnica impresa en consola.",
+        "errors": {}
+    },
+    "74": {
+        "summary": "Procesar lenguaje natural para extraer estadísticas básicas.",
+        "explanation": "El Procesamiento de Lenguaje Natural (NLP) comienza aquí. Tomamos un texto \"sucio\", lo limpiamos quitando puntuación y normalizando a minúsculas.\n\nLuego, usamos `Counter` para contar eficientemente la frecuencia de cada palabra. Esto es la base para nubes de palabras o análisis de tendencias.",
+        "concepts": "Limpieza de texto con Regex.\nClase `Counter` de `collections`.\nAnálisis de frecuencia de palabras.",
+        "line_by_line": "1. Ejecuta el código.\n2. Observa cuáles son las palabras más repetidas.\n3. Pega un texto propio más largo y analiza sus palabras clave.",
+        "errors": {}
+    },
+    "75": {
+        "summary": "Clasificar texto en positivo o negativo mediante un algoritmo basado en reglas.",
+        "explanation": "¿Cómo sabe una máquina si un comentario es bueno o malo?\n\nImplementamos un analizador de sentimientos muy básico basado en \"bolsa de palabras\". Sumamos puntos por palabras positivas y restamos por negativas. Aunque simple, ilustra el concepto detrás de sistemas más complejos de IA.",
+        "concepts": "Listas de palabras clave (lexicones).\nAlgoritmo de puntuación simple.\nClasificación condicional.",
+        "line_by_line": "1. Ejecuta el analizador.\n2. Añade una frase sarcástica y ve si el algoritmo falla (es muy básico).\n3. Añade más palabras a las listas `positivas` y `negativas`.",
+        "errors": {}
+    },
+    "76": {
+        "summary": "Validar formatos de datos complejos usando expresiones regulares robustas.",
+        "explanation": "Validar emails correctamente es difícil. Las expresiones regulares son la herramienta estándar para esto.\n\nAnalizaremos un patrón regex que verifica la estructura: usuario, arroba, dominio y extensión. Es vital para formularios de registro y limpieza de bases de datos.",
+        "concepts": "Regex avanzada para emails.\nFunción `re.match`.\nValidación de entradas críticas.",
+        "line_by_line": "1. Ejecuta el validador.\n2. Prueba con correos extraños pero válidos (ej. `user+tag@gmail.com`).\n3. Intenta engañar al validador con un correo mal formado.",
+        "errors": {}
+    },
+    "77": {
+        "summary": "Crear documentos PDF profesionales de forma programática.",
+        "explanation": "Generar reportes en PDF es una tarea muy común en empresas.\n\nUsamos la librería `fpdf2` para crear un documento desde cero, definiendo fuentes, tamaños y añadiendo texto celda por celda. Esto permite automatizar la creación de facturas, informes o diplomas.",
+        "concepts": "Librería `fpdf2`.\nEstructura de página, fuentes y celdas.\nGeneración automática de reportes.",
+        "line_by_line": "1. Ejecuta el código.\n2. Abre el archivo `reporte_simple.pdf`.\n3. Intenta añadir una imagen al PDF (busca documentación de `fpdf image`).",
+        "errors": {}
+    },
+    "78": {
+        "summary": "Dotar a nuestras aplicaciones de capacidad de habla (TTS).",
+        "explanation": "La accesibilidad es importante. Con `pyttsx3`, podemos hacer que nuestros scripts \"hablen\".\n\nEsta librería funciona offline, utilizando los motores de síntesis de voz instalados en tu sistema operativo. Podemos controlar la velocidad, el volumen y la voz utilizada.",
+        "concepts": "Librería `pyttsx3`.\nConfiguración de propiedades de voz (velocidad, volumen).\nSíntesis de voz offline.",
+        "line_by_line": "1. Ejecuta el código (asegúrate de tener audio activado).\n2. Experimenta cambiando la velocidad (`rate`) para que hable más rápido o lento.\n3. Intenta cambiar la voz (índice 0 o 1) si tu sistema tiene varias instaladas.",
+        "errors": {}
+    },
+    "79": {
+        "summary": "Crear arte generativo vectorial usando la lógica de \"Turtle Graphics\".",
+        "explanation": "Turtle Graphics es una forma clásica de enseñar programación gráfica.\n\nAquí usamos una versión que genera archivos SVG. Al mover la \"tortuga\" y cambiar el color en un bucle, creamos patrones complejos y hermosos con muy pocas líneas de código.",
+        "concepts": "Librería `svg_turtle`.\nBucles y matemáticas para patrones geométricos.\nGráficos vectoriales (SVG).",
+        "line_by_line": "1. Ejecuta el código.\n2. Abre el SVG generado en un navegador.\n3. Cambia el ángulo de giro levemente (ej. de 59 a 90) para ver un patrón totalmente distinto.",
+        "errors": {}
+    },
+    "80": {
+        "summary": "Entender y visualizar la recursividad mediante fractales.",
+        "explanation": "Los fractales son estructuras que se repiten a diferentes escalas. El Triángulo de Sierpinski es un ejemplo clásico.\n\nLo generamos usando recursividad: una función que dibuja un triángulo y luego se llama a sí misma tres veces para dibujar triángulos más pequeños dentro. Es una demostración visual poderosa de la lógica recursiva.",
+        "concepts": "Recursividad (funciones que se llaman a sí mismas).\nGeometría fractal.\nDivisión de problemas en sub-problemas.",
+        "line_by_line": "1. Ejecuta el código.\n2. Observa el triángulo fractal generado.\n3. Aumenta el grado de recursión a 4 o 5 y observa el detalle (y el tiempo de proceso).",
+        "errors": {}
+    },
+    "81": {
+        "summary": "Crear patrones complejos mediante la repetición y rotación de formas simples.",
+        "explanation": "A veces, reglas simples crean resultados complejos.\n\nAquí definimos una función para dibujar un cuadrado. Luego, en un bucle, dibujamos ese cuadrado, rotamos un poco el lienzo, y repetimos. El resultado es un \"spirograph\" geométrico fascinante.",
+        "concepts": "Bucles anidados para gráficos.\nRotación y traslación.\nAbstracción de funciones de dibujo (`draw_square`).",
+        "line_by_line": "1. Ejecuta el código.\n2. Observa cómo la rotación de un simple cuadrado crea una forma compleja.\n3. Cambia la función `draw_square` para dibujar un triángulo y ve qué pasa.",
+        "errors": {}
+    },
+    "82": {
+        "summary": "Dibujar formas básicas y entender la aproximación de curvas.",
+        "explanation": "En gráficos vectoriales básicos, a veces no tenemos una primitiva de \"círculo\".\n\nAprendemos a aproximar un círculo dibujando un polígono de muchos lados (ej. 36 lados de 10 grados cada uno). También practicamos mover el cursor sin dibujar (`penup`) para posicionarnos en el lienzo.",
+        "concepts": "Dibujo de polígonos.\nAproximación de círculos mediante polígonos de muchos lados.\nMovimiento sin trazo (`penup`, `pendown`).",
+        "line_by_line": "1. Ejecuta el código.\n2. Observa cómo el círculo está hecho en realidad de pequeñas líneas rectas.\n3. Intenta dibujar un segundo círculo en otra posición.",
+        "errors": {}
+    },
+    "83": {
+        "summary": "Introducción básica a los comandos de movimiento relativo.",
+        "explanation": "Este es el \"Hola Mundo\" de los gráficos.\n\nDamos instrucciones secuenciales a la tortuga: avanza, gira 90 grados, avanza... Repitiendo esto cuatro veces, cerramos la forma y creamos un cuadrado.",
+        "concepts": "Comandos `forward` y `right`.\nPensamiento secuencial espacial.",
+        "line_by_line": "1. Ejecuta el código.\n2. Intenta cambiar el color del lápiz a \"purple\".\n3. Modifica el código para dibujar un rectángulo en lugar de un cuadrado.",
+        "errors": {}
+    },
+    "84": {
+        "summary": "Mejorar la interfaz de usuario en aplicaciones de consola (CLI).",
+        "explanation": "Las aplicaciones de consola no tienen por qué ser aburridas o monocromáticas.\n\n`colorama` nos permite usar colores de forma multiplataforma (funciona en Windows, Linux, Mac). Usamos colores para indicar estado: verde para éxito, rojo para error, amarillo para advertencia.",
+        "concepts": "Librería `colorama`.\nCódigos ANSI para colores (abstraídos).\nEstilos de texto (Brillante, Tenue).",
+        "line_by_line": "1. Ejecuta el código en tu terminal.\n2. Observa los diferentes colores y estilos.\n3. Escribe un mensaje de \"¡ERROR FATAL!\" en rojo brillante sobre fondo blanco.",
+        "errors": {}
+    },
+    "85": {
+        "summary": "Automatizar la descarga de contenido desde internet con barras de progreso.",
+        "explanation": "Descargar archivos grandes requiere cuidado. No queremos cargar todo en memoria de golpe.\n\nUsamos `stream=True` en la petición y leemos el archivo en \"chunks\" (trozos). Esto nos permite también calcular y mostrar una barra de progreso, mejorando la experiencia del usuario.",
+        "concepts": "Descarga de streams con `requests`.\nManejo de chunks (fragmentos) de datos.\nVisualización de progreso en consola.",
+        "line_by_line": "1. Ejecuta el script. Descargará el logo de Python.\n2. Pasa una URL de una imagen grande como argumento para ver la barra de progreso en acción.",
+        "errors": {}
+    },
+    "86": {
+        "summary": "Generar códigos de un solo uso (One-Time Passwords) seguros.",
+        "explanation": "La seguridad es primordial. Para generar contraseñas o tokens, nunca debemos usar `random` estándar, ya que es predecible.\n\nUsamos el módulo `secrets`, diseñado específicamente para criptografía. Generamos una cadena de 6 dígitos numéricos aleatorios, típica de los sistemas de autenticación de dos factores (2FA).",
+        "concepts": "Módulo `secrets` (criptográficamente seguro) vs `random`.\nManipulación de strings.",
+        "line_by_line": "1. Ejecuta el generador varias veces.\n2. Verifica que los códigos sean siempre diferentes.\n3. Modifica el código para generar un OTP de 8 dígitos.",
+        "errors": {}
+    },
+    "87": {
+        "summary": "Crear contraseñas robustas y complejas automáticamente.",
+        "explanation": "Una buena contraseña debe ser larga y variada.\n\nAquí combinamos letras mayúsculas, minúsculas, números y símbolos. Luego, seleccionamos caracteres aleatorios de este \"super alfabeto\" usando `secrets.choice` para construir una contraseña fuerte.",
+        "concepts": "Combinación de alfabetos (letras, números, símbolos).\nGeneración segura de cadenas aleatorias.",
+        "line_by_line": "1. Ejecuta el generador.\n2. Cambia la longitud de la contraseña a 16 caracteres.\n3. Modifica el alfabeto para excluir símbolos de puntuación si lo deseas.",
+        "errors": {}
+    },
+    "88": {
+        "summary": "Realizar Web Scraping básico para extraer información específica (enlaces).",
+        "explanation": "El Web Scraping nos permite convertir la web en una base de datos.\n\nUsamos `BeautifulSoup` para analizar el HTML de una página. Buscamos todas las etiquetas de anclaje (`<a>`) y extraemos sus atributos `href`, permitiéndonos recolectar todos los enlaces de un sitio.",
+        "concepts": "Librería `BeautifulSoup`.\nParsing de HTML.\nFiltrado de etiquetas `<a>` y atributos `href`.",
+        "line_by_line": "1. Ejecuta el script contra `python.org`.\n2. Prueba con otra web, como `wikipedia.org`.\n3. Observa cómo extrae y lista los enlaces encontrados.",
+        "errors": {}
+    },
+    "89": {
+        "summary": "Interactuar con una API REST pública para obtener datos de usuarios.",
+        "explanation": "Las APIs REST son el pegamento de internet. GitHub ofrece una API pública muy completa.\n\nHacemos una petición GET a la API de usuarios, enviando las cabeceras adecuadas. La respuesta JSON contiene toda la información pública del perfil, que luego formateamos y mostramos.",
+        "concepts": "Consumo de API REST (GitHub API).\nManejo de cabeceras HTTP (User-Agent).\nProcesamiento de respuesta JSON.",
+        "line_by_line": "1. Ejecuta el script para ver la info del usuario `octocat`.\n2. Pasa tu propio nombre de usuario de GitHub como argumento.\n3. Observa qué pasa si pones un usuario que no existe.",
+        "errors": {}
+    },
+    "90": {
+        "summary": "Automatizar la conversión de formatos de archivo de imagen modernos.",
+        "explanation": "El formato HEIC es eficiente pero no universalmente compatible.\n\nCreamos un script que detecta archivos HEIC y los convierte automáticamente a PNG, un formato más estándar. Esto es ideal para procesar lotes de fotos subidas por usuarios desde dispositivos móviles.",
+        "concepts": "Formato HEIC (iPhone).\nLibrería `pillow-heif`.\nAutomatización de tareas de sistema de archivos.",
+        "line_by_line": "1. Si tienes una foto de iPhone (.heic), úsala. Si no, el script crea un dummy.\n2. Ejecuta el script.\n3. Verifica que se haya creado la versión .png de la imagen.",
+        "errors": {}
+    },
+    "91": {
+        "summary": "Analizar archivos de datos de infraestructura (rangos IP de AWS).",
+        "explanation": "Los proveedores de nube como AWS publican sus rangos de IP en formato JSON.\n\nSaber leer y filtrar estos archivos es útil para configurar firewalls o listas de acceso de seguridad, permitiendo tráfico solo desde regiones o servicios específicos.",
+        "concepts": "Lectura de estructuras JSON complejas.\nFiltrado de datos (regiones, servicios).",
+        "line_by_line": "1. Ejecuta el código.\n2. Observa la estructura del JSON impreso.\n3. Intenta escribir un código que filtre solo las IPs de la región \"ap-northeast-2\".",
+        "errors": {}
+    },
+    "92": {
+        "summary": "Automatizar un navegador real para extraer datos de webs dinámicas.",
+        "explanation": "Cuando las webs usan mucho JavaScript, `requests` no es suficiente. Necesitamos un navegador real.\n\nSelenium nos permite controlar Chrome mediante código. Podemos navegar, hacer clic y extraer datos tal como lo haría un humano, pero a velocidad de máquina.",
+        "concepts": "Librería `Selenium`.\nControl de navegador (Chrome) en modo Headless.\nSelección de elementos por CSS Selector.",
+        "line_by_line": "1. Ejecuta el scraper. (Requiere Chrome instalado).\n2. Observa cómo navega (invisiblemente) y extrae títulos de libros.\n3. Modifica el selector CSS para extraer los precios en lugar de los títulos.",
+        "errors": {}
+    },
+    "93": {
+        "summary": "Procesar hojas de cálculo y datos tabulares.",
+        "explanation": "CSV es el formato universal para intercambio de datos tabulares.\n\nPython tiene una librería nativa excelente para esto. Usamos `DictReader` para leer cada fila como un diccionario, lo que hace el código muy legible al acceder a las columnas por su nombre.",
+        "concepts": "Formato CSV.\nLibrería `csv` (`DictReader`, `writer`).\nCálculos agregados sobre filas.",
+        "line_by_line": "1. Ejecuta el script.\n2. Observa cómo crea un archivo, lo lee y calcula totales.\n3. Modifica el script para calcular el promedio de precios.",
+        "errors": {}
+    },
+    "94": {
+        "summary": "Leer, extraer texto y modificar archivos PDF.",
+        "explanation": "Los PDFs son documentos complejos, no texto plano.\n\nCon `pypdf`, podemos navegar por la estructura interna del PDF. En este ejercicio, extraemos el texto de una página y luego creamos un nuevo archivo PDF que contiene solo esa página extraída.",
+        "concepts": "Librería `pypdf`.\nExtracción de texto.\nDivisión y creación de PDFs (splitting).",
+        "line_by_line": "1. Ejecuta el código.\n2. Verifica que se cree `demo.pdf` y luego su copia.\n3. Lee el texto extraído en la consola.",
+        "errors": {}
+    },
+    "95": {
+        "summary": "Renderizar páginas de un documento PDF como imágenes rasterizadas.",
+        "explanation": "A veces necesitamos mostrar un PDF en una web como imagen, o procesarlo con visión artificial.\n\nEsta herramienta convierte cada página del documento en una imagen JPG independiente, permitiéndonos manipularla como cualquier otra foto.",
+        "concepts": "Librería `pdf2image`.\nDependencia externa (Poppler).\nConversión de formatos de documento a imagen.",
+        "line_by_line": "1. Ejecuta el código (requiere Poppler).\n2. Revisa las imágenes JPG generadas para cada página del PDF.\n3. Esto es útil para generar previsualizaciones de documentos.",
+        "errors": {}
+    },
+    "96": {
+        "summary": "Crear funciones de validación reutilizables con expresiones regulares.",
+        "explanation": "Las expresiones regulares son la navaja suiza de la validación.\n\nAquí definimos patrones estrictos para números de teléfono y nombres de usuario. Encapsular estas validaciones en funciones hace que nuestro código sea modular y fácil de probar.",
+        "concepts": "Patrones para teléfonos y usuarios.\nEncapsulamiento en funciones.\nPruebas de validación.",
+        "line_by_line": "1. Ejecuta las validaciones.\n2. Modifica el patrón de usuario para que acepte guiones medios `-`.\n3. Prueba con un número de teléfono que tenga espacios en lugar de guiones.",
+        "errors": {}
+    },
+    "97": {
+        "summary": "Automatizar tareas tediosas de gestión de archivos.",
+        "explanation": "¿Alguna vez has tenido que renombrar 100 fotos a mano? Nunca más.\n\nEste script itera sobre una carpeta, aplica una lógica de transformación al nombre de cada archivo (limpiando caracteres no deseados) y los renombra automáticamente. Es la esencia de la automatización con Python.",
+        "concepts": "Módulo `os` y `shutil`.\nManipulación de rutas y nombres de archivo.\nOperaciones en lote (batch).",
+        "line_by_line": "1. Ejecuta el script. Verás que crea archivos \"sucios\" y los limpia.\n2. Observa cómo elimina los números y guiones del principio.\n3. Modifica la lógica para reemplazar espacios por guiones bajos.",
+        "errors": {}
+    },
+    "98": {
+        "summary": "Obtener datos del entorno de ejecución y hardware.",
+        "explanation": "Para scripts de administración de sistemas, necesitamos conocer el entorno.\n\nPython nos da acceso a detalles de bajo nivel: qué sistema operativo es, qué versión de kernel, qué procesador tiene, etc. Esto es vital para diagnósticos y compatibilidad.",
+        "concepts": "Módulo `platform` y `sys`.\nInformación del SO, procesador y arquitectura.\nDiagnóstico de entorno.",
+        "line_by_line": "1. Ejecuta el script.\n2. Observa la información detallada sobre tu máquina.\n3. Es útil para scripts que deben comportarse distinto según el SO (Windows vs Linux).",
+        "errors": {}
+    },
+    "99": {
+        "summary": "Crear una utilidad de bienestar que interactúa con el navegador.",
+        "explanation": "Los scripts también pueden cuidar de nosotros.\n\nEste ejemplo simple usa `time.sleep` para pausar la ejecución (simulando un temporizador de trabajo) y luego `webbrowser` para abrir una acción, recordándonos tomar un descanso.",
+        "concepts": "Módulo `time` (`sleep`).\nMódulo `webbrowser`.\nAutomatización de escritorio simple.",
+        "line_by_line": "1. Ejecuta el script y espera 3 segundos.\n2. Observa cómo se abre tu navegador automáticamente.\n3. Cambia la URL a tu video musical favorito.",
+        "errors": {}
+    },
+    "100": {
+        "summary": "Implementar políticas de seguridad complejas para contraseñas.",
+        "explanation": "Validar una contraseña segura requiere verificar muchas cosas a la vez: longitud, mayúsculas, números, símbolos.\n\nUsamos una expresión regular avanzada con \"lookaheads\" positivos. Esto nos permite verificar todas estas condiciones en una sola expresión potente y compacta.",
+        "concepts": "Regex \"Lookahead\" (`?=`).\nValidación de múltiples criterios simultáneos.\nSeguridad de contraseñas.",
+        "line_by_line": "1. Ejecuta el validador contra la lista de contraseñas.\n2. Analiza por qué algunas fallan y otras pasan.\n3. Crea una contraseña que cumpla todos los requisitos y pruébala.",
+        "errors": {}
+    },
+    "101": {
+        "summary": "Extraer metadatos multimedia (video).",
+        "explanation": "El análisis multimedia es otra gran área de Python.\n\nCon `moviepy`, podemos abrir archivos de video y extraer sus propiedades técnicas sin necesidad de reproducirlos. Esto es útil para organizar bibliotecas de medios o validar subidas de usuarios.\n\n========================================\nMódulo 05: Ciberseguridad y Criptografía\n========================================",
+        "concepts": "Librería `moviepy`.\nAnálisis de archivos de video.\nExtracción de duración y resolución.",
+        "line_by_line": "1. Si tienes un video `.mp4`, úsalo. Si no, el script te avisará.\n2. Ejecuta el análisis.\n3. Observa la duración exacta y la resolución del video.",
+        "errors": {}
+    },
+    "102": {
+        "summary": "Implementar cifrado simétrico para proteger mensajes confidenciales.",
+        "explanation": "La criptografía es la base de la seguridad digital. Aquí usamos Fernet, una implementación de cifrado simétrico.\n\nSimétrico significa que usamos la misma clave para cerrar (encriptar) y abrir (desencriptar) el mensaje. Si pierdes la clave, pierdes el mensaje. Si alguien roba la clave, puede leer tus secretos.",
+        "concepts": "Cifrado simétrico con Fernet.\nGeneración y gestión de claves.\nConcepto de encriptar y desencriptar.",
+        "line_by_line": "1. Ejecuta el código.\n2. Cambia el mensaje secreto por uno propio.\n3. Intenta desencriptar el mensaje usando una clave diferente (generada con `Fernet.generate_key()`) y observa el error.",
+        "errors": {}
+    },
+    "103": {
+        "summary": "Entender cómo almacenar contraseñas de forma segura usando funciones hash.",
+        "explanation": "Nunca debemos guardar contraseñas en texto plano. Usamos funciones hash, que son unidireccionales: puedes convertir una contraseña en hash, pero no al revés.\n\nTambién introducimos el concepto de \"Salt\": añadir datos aleatorios a la contraseña antes de hashearla para hacerla única y resistente a ataques precalculados.",
+        "concepts": "Diferencia entre cifrado (reversible) y hash (irreversible).\nAlgoritmos MD5 (obsoleto) vs SHA-256.\nImportancia del \"Salt\" para evitar ataques de Rainbow Tables.",
+        "line_by_line": "1. Ejecuta el código.\n2. Observa cómo el mismo texto siempre genera el mismo hash.\n3. Cambia un solo carácter de la contraseña y ve cómo el hash cambia totalmente.",
+        "errors": {}
+    },
+    "104": {
+        "summary": "Simular un ataque de fuerza bruta para entender la debilidad de contraseñas simples.",
+        "explanation": "Para entender cómo defenderse, hay que pensar como un atacante.\n\nEn este ejercicio, simulamos ser un hacker que ha robado una base de datos de hashes. Usamos un script para probar todas las combinaciones posibles de PINs (0000-9999) hasta encontrar la que coincide con el hash robado.",
+        "concepts": "Mecánica de un ataque de fuerza bruta.\nComparación de hashes.\nCoste computacional de contraseñas débiles.",
+        "line_by_line": "1. Ejecuta el script. Intentará adivinar un PIN de 4 dígitos.\n2. Cambia el `TARGET_HASH` por el hash de \"9999\" (genéralo en el ejercicio anterior).\n3. Reflexiona sobre cuánto tardaría si fuera una contraseña de 8 letras.",
+        "errors": {}
+    },
+    "105": {
+        "summary": "Demostrar la vulnerabilidad web más crítica y cómo funciona.",
+        "explanation": "La inyección SQL ocurre cuando un atacante logra que la base de datos ejecute código malicioso.\n\nEsto sucede a menudo por concatenar texto del usuario directamente en la consulta. Veremos cómo un simple `' OR '1'='1` puede engañar al sistema para que nos deje entrar sin contraseña.",
+        "concepts": "Funcionamiento de SQL Injection.\nPeligro de concatenar strings en consultas SQL.\nManipulación de lógica booleana (`OR '1'='1'`).",
+        "line_by_line": "1. Ejecuta el código para ver el login normal y el fallido.\n2. Observa el tercer caso: el ataque.\n3. Intenta modificar el ataque para borrar la tabla (`DROP TABLE users`) - ¡Cuidado, es destructivo!",
+        "errors": {}
+    },
+    "106": {
+        "summary": "Analizar URLs sospechosas mediante heurística básica.",
+        "explanation": "El phishing engaña al usuario para que revele sus datos. Las URLs suelen tener características delatoras.\n\nCreamos un script que busca \"banderas rojas\": uso de direcciones IP en lugar de dominios, URLs excesivamente largas, o el uso del símbolo `@` para confundir al navegador.",
+        "concepts": "Análisis de cadenas para seguridad.\nPatrones comunes de phishing (IPs, longitud, arrobas).\nPuntuación de riesgo (Scoring).",
+        "line_by_line": "1. Ejecuta el detector con las URLs de ejemplo.\n2. Añade una URL legítima (ej. tu banco) y ve si da falsos positivos.\n3. Añade una URL claramente maliciosa inventada y verifica si la detecta.",
+        "errors": {}
+    },
+    "107": {
+        "summary": "Inspeccionar el tráfico web invisible (cabeceras) para reconocimiento.",
+        "explanation": "Cada vez que visitas una web, hay una conversación oculta de \"cabeceras\" entre tu navegador y el servidor.\n\nPara un experto en ciberseguridad, estas cabeceras son oro. Revelan qué software corre el servidor, versiones y configuraciones, lo cual es el primer paso para buscar vulnerabilidades específicas.",
+        "concepts": "Estructura del protocolo HTTP.\nCabeceras de petición vs respuesta.\nInformación revelada por el servidor (`Server`, `X-Powered-By`).",
+        "line_by_line": "1. Ejecuta el script contra un sitio web.\n2. Analiza qué servidor web están usando (Apache, Nginx, etc.).\n3. Busca cabeceras que revelen versiones de software.",
+        "errors": {}
+    },
+    "108": {
+        "summary": "Auditar la seguridad de un sitio web verificando sus cabeceras de protección.",
+        "explanation": "Los navegadores modernos tienen mecanismos de defensa potentes, pero el servidor debe activarlos.\n\nEste script actúa como un auditor de seguridad, verificando si el sitio web está enviando las instrucciones correctas para proteger a sus usuarios contra ataques como XSS o Clickjacking.",
+        "concepts": "Cabeceras de seguridad modernas (`HSTS`, `CSP`, `X-Frame-Options`).\nImportancia de `User-Agent`.\nAuditoría de seguridad web.",
+        "line_by_line": "1. Ejecuta el script contra `google.com` (suelen tener buena seguridad).\n2. Ejecuta contra un sitio web personal o antiguo.\n3. Compara qué cabeceras faltan en el sitio menos seguro.",
+        "errors": {}
+    },
+    "109": {
+        "summary": "Crear una herramienta de reconocimiento de red básica.",
+        "explanation": "Saber qué \"puertas\" (puertos) tiene abiertas un ordenador es vital.\n\nUsamos sockets para intentar conectar a una lista de puertos comunes. Si la conexión se acepta, el puerto está abierto. Es una versión simplificada de herramientas profesionales como Nmap.\n\n\n========================================\nMódulo 06: Proyectos Finales\n========================================",
+        "concepts": "Sockets de red.\nConexiones TCP.\nEstados de puertos (Abierto/Cerrado).",
+        "line_by_line": "1. Ejecuta el escáner contra `localhost` (127.0.0.1).\n2. Si tienes un servidor web corriendo, deberías ver el puerto 80 abierto.\n3. Añade el puerto 3306 (MySQL) a la lista de escaneo.",
+        "errors": {}
+    },
+    "110": {
+        "summary": "Iniciar un proyecto de extracción de datos real obteniendo el HTML crudo.",
+        "explanation": "Este es el primer paso de nuestro proyecto final de Scraping.\n\nAntes de analizar nada, necesitamos obtener la materia prima. Hacemos una petición a una librería online de prueba y guardamos el código HTML en nuestro disco. Esto nos permite trabajar offline y no saturar el servidor con peticiones repetidas.",
+        "concepts": "Flujo de trabajo de Scraping: Petición -> Guardado -> Análisis.\nManejo de codificación (`utf-8`).\nInspección preliminar de datos.",
+        "line_by_line": "1. Ejecuta el script.\n2. Verifica que se ha descargado el archivo `books.html`.\n3. Abre ese archivo en tu navegador para ver qué descargaste.",
+        "errors": {}
+    },
+    "111": {
+        "summary": "Procesar el HTML guardado para extraer datos estructurados y exportarlos.",
+        "explanation": "Ahora convertimos el caos del HTML en orden.\n\nUsamos BeautifulSoup para \"bucear\" en la estructura de la página. Buscamos cada libro, extraemos su título, precio y disponibilidad, y finalmente lo guardamos todo en un archivo CSV limpio y ordenado.",
+        "concepts": "Parsing avanzado con BeautifulSoup.\nEstrategias de localización de elementos (clases, etiquetas anidadas).\nExportación a CSV.",
+        "line_by_line": "1. Asegúrate de tener `books.html` del paso anterior.\n2. Ejecuta el script.\n3. Abre `libros_extraidos.csv` en Excel o LibreOffice para ver tu base de datos de libros.",
+        "errors": {}
+    },
+    "112": {
+        "summary": "Simular y leer archivos de registro (logs) de servidores.",
+        "explanation": "Los administradores de sistemas viven pegados a los logs.\n\nEn este proyecto, primero generamos un archivo de logs simulado que imita el formato estándar de un servidor web. Luego, escribimos un script para leerlo línea por línea, preparándonos para el análisis.",
+        "concepts": "Formatos de log estándar (Apache/Nginx).\nGeneración de datos de prueba.\nLectura secuencial de archivos grandes.",
+        "line_by_line": "1. Ejecuta el script para generar el archivo `server.log`.\n2. Observa el formato de cada línea.\n3. Modifica el generador para añadir una línea con una IP sospechosa.",
+        "errors": {}
+    },
+    "113": {
+        "summary": "Extraer inteligencia y estadísticas de los logs del servidor.",
+        "explanation": "Los datos crudos no sirven de mucho; necesitamos información.\n\nUsamos expresiones regulares para \"despedazar\" cada línea del log y extraer la IP y el código de estado. Luego, calculamos estadísticas vitales: ¿Cuántos errores hubo? ¿Quién nos visita más? Esto es esencial para detectar ataques o problemas de rendimiento.",
+        "concepts": "Regex para parsing de logs.\nAnálisis estadístico con `Counter`.\nDetección de anomalías (errores 404, IPs frecuentes).",
+        "line_by_line": "1. Ejecuta el script sobre el `server.log` generado.\n2. Revisa el reporte en consola y el archivo de texto generado.\n3. Identifica cuál es la IP que más peticiones ha hecho.",
+        "errors": {}
+    },
+    "114": {
+        "summary": "Crear un script de automatización que ordene una carpeta caótica.",
+        "explanation": "Todos tenemos una carpeta de \"Descargas\" desordenada.\n\nEste script es una herramienta práctica para la vida real. Analiza la extensión de cada archivo y lo mueve a su carpeta correspondiente. Es un ejemplo perfecto de cómo Python puede automatizar tareas tediosas del día a día.\n\n\n========================================\nMódulo 07: Certificación\n========================================",
+        "concepts": "Gestión del sistema de archivos (`os`, `shutil`).\nLógica de clasificación por extensión.\nCreación dinámica de carpetas.",
+        "line_by_line": "1. Ejecuta el script.\n2. Observa cómo crea una carpeta `downloads_test` llena de archivos mezclados.\n3. Ve cómo mágicamente los mueve a carpetas `Imagenes`, `Documentos`, etc.",
+        "errors": {}
+    },
+    "116": {
+        "summary": "Generar un diploma personalizado en PDF como recompensa final.",
+        "explanation": "¡Felicidades! Han llegado al final del curso.\n\nComo último ejercicio, usarán todo lo aprendido para generar su propio certificado de finalización. Este script crea un PDF con diseño profesional, inserta su nombre y la fecha actual. Es un recuerdo tangible de su esfuerzo y aprendizaje.",
+        "concepts": "Uso avanzado de `fpdf2`.\nPosicionamiento absoluto y alineación.\nInserción de fechas dinámicas.",
+        "line_by_line": "1. **IMPORTANTE**: Edita el código y pon TU NOMBRE en la variable `nombre_estudiante`.\n2. Ejecuta el script.\n3. ¡Disfruta de tu certificado de finalización! Te lo has ganado.",
+        "errors": {}
+    }
+}

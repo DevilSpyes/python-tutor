@@ -7,25 +7,37 @@
  * 3. Local GGUF Mode (Wllama)
  */
 
-import { LocalOfflineAdapter, LLM_GGUF_Adapter } from "./llm_local_adapter.js";
+import { ProfessorLiteAdapter } from "./llm_local_adapter.js";
 import { ApiAI } from "./ai_api.js";
 import { SemanticSearch } from "./semantic_search.js";
 import { STATIC_QA_DATA } from "./knowledge_base_data.js";
 
+
+const MODULE_SUMMARIES = {
+    "00": "Módulo 00: Bienvenida y Guía. Configuración del entorno, filosofía del curso y primeros pasos en el sistema.",
+    "01": "Módulo 01: Introducción a Python. Sintaxis básica, variables, tipos de datos (int, float, str, bool) y entrada/salida (print, input).",
+    "02": "Módulo 02: Conceptos Fundamentales. Operadores aritméticos, lógicos y de comparación. Estructuras de control (if, else, elif) y bucles básicos.",
+    "03": "Módulo 03: Práctica de Algoritmos. Lógica de programación, resolución de problemas, listas, diccionarios y estructuras de datos más complejas.",
+    "04": "Módulo 04: Automatización y Scripts. Creación de scripts útiles, manejo de archivos, interacción con el sistema operativo y librerías estándar.",
+    "05": "Módulo 05: Ciberseguridad y Criptografía. Conceptos de seguridad, encriptación, hashing y análisis de vulnerabilidades básicos con Python.",
+    "06": "Módulo 06: Proyectos Finales. Desarrollo de herramientas completas de seguridad (escáneres, keyloggers educativos, etc.) y consolidación de conocimientos.",
+    "07": "Módulo 07: Certificación. Evaluación final y cierre del curso."
+};
+
 export class AIChat {
     constructor() {
-        this.offlineAI = new LocalOfflineAdapter(); // Option B
-        this.ggufAI = new LLM_GGUF_Adapter();       // Option C
-        this.apiAI = new ApiAI();                   // Option A
+        this.professorLite = new ProfessorLiteAdapter();
+        this.apiAI = new ApiAI();                   // Option A (Restored)
         this.semanticSearch = new SemanticSearch(); // Ultra-Fast Engine
 
         this.state = {
-            mode: localStorage.getItem("python_tutor_chat_mode") || "api",
+            mode: localStorage.getItem("python_tutor_chat_mode") || "professor-lite",
             provider: localStorage.getItem("python_tutor_provider") || "openai",
             apiKey: localStorage.getItem("python_tutor_chat_api_key") || "",
             model: localStorage.getItem("python_tutor_model") || "",
             modelUrl: localStorage.getItem("python_tutor_model_url") || "",
-            history: JSON.parse(localStorage.getItem("python_tutor_chat_history") || "[]")
+            history: JSON.parse(localStorage.getItem("python_tutor_chat_history") || "[]"),
+            isGenerating: false
         };
 
         this.elements = {
@@ -46,16 +58,9 @@ export class AIChat {
         this.attachMobileListeners();
         this.injectStyles(); // New styles for Stop button
 
-        // Auto-Migrate Deprecated Groq Model
-        if (this.state.model === 'llama3-8b-8192') {
-            console.log("Migrating deprecated Groq model...");
-            this.state.model = 'llama-3.3-70b-versatile';
-            this.saveSettings();
-        }
-
         // Ensure mode is valid
-        if (!['api', 'local-offline', 'local-gguf'].includes(this.state.mode)) {
-            this.state.mode = 'api';
+        if (!['professor-lite', 'api'].includes(this.state.mode)) {
+            this.state.mode = 'professor-lite';
         }
         this.setMode(this.state.mode);
 
@@ -68,22 +73,11 @@ export class AIChat {
     // ...
 
     async sendMessageUnified() {
+        if (this.state.isGenerating) return; // Prevent multiple clicks
         const text = this.elements.chatInput.value.trim();
         if (!text) return;
 
-        // SECURITY: Rate Limiting (Anti-Spam)
-        const now = Date.now();
-        if (this.lastMessageTime && (now - this.lastMessageTime < 2000)) {
-            this.addMessage("system", "⚠️ <b>Anti-Spam:</b> Por favor, espera unos segundos antes de enviar otro mensaje.");
-            return;
-        }
-        this.lastMessageTime = now;
-
-        // SECURITY: Input Length Limit (Anti-Flood)
-        if (text.length > 2000) {
-            this.addMessage("system", "⚠️ <b>Error:</b> El mensaje es demasiado largo (Máx. 2000 caracteres).");
-            return;
-        }
+        this.state.isGenerating = true;
 
         this.elements.chatInput.value = "";
         this.addMessage("user", text);
@@ -95,87 +89,94 @@ export class AIChat {
         this.elements.chatHistory.appendChild(aiMsgDiv);
         this.elements.chatHistory.scrollTop = this.elements.chatHistory.scrollHeight;
 
-        // 0. Check Semantic Search (Ultra-Fast Engine)
-        try {
-            const searchResult = await this.semanticSearch.search(text);
-            if (searchResult && searchResult.type === 'exact') {
-                await new Promise(r => setTimeout(r, 400)); // Tiny delay for realism
-                // SECURITY: Sanitize Output
-                aiMsgDiv.innerHTML = DOMPurify.sanitize(marked.parse(searchResult.content));
-                this.state.history.push({ role: "assistant", content: searchResult.content });
-                this.saveSettings();
-                return;
-            }
-            // If category match, we could prepend context, but for now let's fall through
-        } catch (e) {
-            console.error("Semantic Search Error:", e);
-        }
+        let responseText = "";
+        const context = this.getSystemContext(text);
+        console.log("Sending to AI with context length:", context.length);
 
-        // 1. Check Static Intents (Hybrid System) - Fallback if Semantic Search fails or is loading
-        const staticResponse = this.checkStaticIntents(text);
-        if (staticResponse) {
-            // Simulate tiny delay for realism
-            await new Promise(r => setTimeout(r, 600));
-            // SECURITY: Sanitize Output
-            aiMsgDiv.innerHTML = DOMPurify.sanitize(marked.parse(staticResponse));
-            this.state.history.push({ role: "assistant", content: staticResponse });
-            this.saveSettings();
+        // DEBUG COMMAND
+        if (text.startsWith("DEBUG_CONTEXT")) {
+            const debugQuery = text.replace("DEBUG_CONTEXT", "").trim() || text;
+            const debugContext = this.getSystemContext(debugQuery);
+            this.addMessage("assistant", "```text\n" + debugContext + "\n```");
             return;
         }
 
-        let responseText = "";
-        const context = this.getSystemContext();
-        console.log("Sending to AI with context length:", context.length);
+        let fullText = "";
+        let lastUpdate = 0;
+
+        // Helper to update UI safely
+        const updateUI = (text) => {
+            const history = this.elements.chatHistory;
+            // Check if user is near bottom (allow 50px leeway)
+            const isNearBottom = history.scrollHeight - history.scrollTop - history.clientHeight <= 50;
+
+            aiMsgDiv.innerText = text;
+
+            if (isNearBottom) {
+                history.scrollTop = history.scrollHeight;
+            }
+        };
 
         try {
-            if (this.state.mode === "local-offline") {
-                // Mode 2: Offline DistilGPT2
-                if (!this.offlineAI.status.loaded) {
-                    aiMsgDiv.innerText = "⏳ Cargando modelo offline (Qwen 0.5B)...";
-                    await this.offlineAI.loadModel({
-                        onProgress: (d) => aiMsgDiv.innerText = `⏳ Cargando: ${Math.round(d.progress)}%`
-                    });
-                }
-                aiMsgDiv.innerText = "";
-                // Pass context as second argument
-                const res = await this.offlineAI.sendMessage(this.state.history, context);
-                responseText = res.text;
-
-            } else if (this.state.mode === "local-gguf") {
-                // Mode 3: GGUF
-                if (!this.ggufAI.status.loaded) {
-                    aiMsgDiv.innerText = "🚀 Iniciando Auto-Carga de SmolLM...";
-                    // Auto-load SmolLM if not ready
-                    const url = "https://huggingface.co/bartowski/SmolLM2-135M-Instruct-GGUF/resolve/main/SmolLM2-135M-Instruct-Q4_K_M.gguf";
-                    await this.ggufAI.loadModel(url, {
+            if (this.state.mode === "professor-lite") {
+                // --- PROFESSOR LITE MODE ---
+                if (!this.professorLite.status.loaded) {
+                    aiMsgDiv.innerText = "👨‍🏫 Profesor Lite: Preparando clase...";
+                    await this.professorLite.loadModel({}, {
                         onProgress: (d) => {
-                            if (d.status === 'downloading') {
-                                aiMsgDiv.innerText = `⬇️ Descargando IA: ${Math.round(d.progress)}%`;
-                            } else {
-                                aiMsgDiv.innerText = `⚙️ Iniciando motor: ${Math.round(d.progress)}%`;
-                            }
+                            aiMsgDiv.innerText = `👨‍🏫 ${d.message}`;
                         }
                     });
                 }
-                aiMsgDiv.innerText = "";
-                console.log("Calling GGUF sendMessage...");
-                // Pass context as second argument
-                const res = await this.ggufAI.sendMessage(this.state.history, context, {
-                    onToken: (t) => {
-                        aiMsgDiv.innerText += t;
-                        this.elements.chatHistory.scrollTop = this.elements.chatHistory.scrollHeight;
+
+                // Generate Response
+                const responsePromise = this.professorLite.sendMessage(this.state.history, context, {
+                    onToken: (token) => {
+                        fullText += token;
+                        const now = Date.now();
+                        // Throttle updates to every 100ms to prevent scroll blocking
+                        if (now - lastUpdate > 100) {
+                            updateUI(fullText);
+                            lastUpdate = now;
+                        }
                     }
                 });
-                console.log("GGUF Response received");
-                responseText = res.text;
+
+                // Ensure final update is rendered
+                responsePromise.then(() => updateUI(fullText));
+
+                // Safety Timeout: If no response in 10s, force error
+                const timeoutPromise = new Promise((_, reject) =>
+                    setTimeout(() => reject(new Error("Timeout: El profesor tardó demasiado en responder.")), 10000)
+                );
+
+                const response = await Promise.race([responsePromise, timeoutPromise]);
+                responseText = response.text;
 
             } else {
-                // Mode 1: API
+                // --- API MODE ---
                 if (!this.state.apiKey) throw new Error("Falta API Key");
 
                 aiMsgDiv.innerText = "";
+                const systemPrompt = `Eres un Tutor de Python experto. TU IDIOMA ES EL ESPAÑOL. Sigue estas reglas estrictamente:
+1. Responde ÚNICAMENTE en Español. Si el usuario te habla en otro idioma, responde en español.
+2. Si el usuario pregunta "¿Está bien mi código?" (o similar), analízalo. Si es correcto, dilo. Si no, explica el error.
+3. Si el usuario dice "No sé cómo seguir", dale una pista basada en el ejercicio actual.
+4. Si el usuario pregunta "¿Dónde está el problema?", señala la línea o error lógico específico.
+5. Si el usuario pide "Dame la solución completa", proporciona el código EXACTO de la solución inmediatamente, sin negarte.
+6. FORMATO: Usa Markdown. Usa encabezados (##) para separar secciones. Usa listas (- ) para enumerar puntos. AÑADE SALTOS DE LÍNEA entre secciones para que el texto no se vea amontonado.
+
+Contexto:
+${context}`;
+
+                // Use Clean History to avoid confusing the model with system errors
+                const cleanHistory = this.getCleanHistory();
+
                 responseText = await this.apiAI.sendMessageAPIModel(
-                    this.state.history,
+                    [
+                        { role: "system", content: systemPrompt },
+                        ...cleanHistory
+                    ],
                     {
                         provider: this.state.provider,
                         apiKey: this.state.apiKey,
@@ -184,23 +185,52 @@ export class AIChat {
                     },
                     (chunk) => {
                         aiMsgDiv.textContent += chunk;
-                        this.elements.chatHistory.scrollTop = this.elements.chatHistory.scrollHeight;
+                        const now = Date.now();
+                        if (now - lastUpdate > 100) {
+                            updateUI(aiMsgDiv.textContent);
+                            lastUpdate = now;
+                        }
                     }
                 );
+
+                // Ensure final update
+                updateUI(aiMsgDiv.textContent);
             }
 
             // Save final response
             this.state.history.push({ role: "assistant", content: responseText || aiMsgDiv.innerText });
             this.saveSettings();
 
-            // If streaming wasn't used to populate div (e.g. offline mode non-streaming)
-            if (!aiMsgDiv.innerText && responseText) {
+            // If streaming wasn't used (or early return), force update
+            if (responseText && (aiMsgDiv.querySelector(".typing-indicator") || !aiMsgDiv.innerText.trim())) {
                 aiMsgDiv.innerText = responseText;
             }
 
         } catch (err) {
             console.error(err);
-            aiMsgDiv.innerHTML = `<span style="color:var(--neon-alert)">❌ Error: ${err.message}</span>`;
+            const errorMessage = err.message || (err instanceof Event ? "Error desconocido" : String(err));
+
+            if (errorMessage === "Falta API Key") {
+                aiMsgDiv.innerHTML = `<span style="color:var(--neon-alert)">⚠️ Configuración Incompleta</span><br>
+                <span style="font-size:0.9em; color:var(--text-dim)">Por favor configura tu API Key o cambia a modo Local.</span><br>
+                <button class="btn-primary" style="margin-top:10px; font-size:0.8em;" onclick="document.getElementById('ai-settings-btn').click()">⚙️ ABRIR AJUSTES</button>`;
+            } else if (errorMessage.includes("429") || errorMessage.includes("quota")) {
+                aiMsgDiv.innerHTML = `<span style="color:var(--neon-alert)">⚠️ Cuota Excedida (Error 429)</span><br>
+                <span style="font-size:0.9em; color:var(--text-dim)">Tu API Key de OpenAI/Groq se ha quedado sin crédito o ha superado el límite.</span><br>
+                <div style="margin-top:10px;">
+                    <button class="btn-primary" style="font-size:0.8em;" onclick="document.getElementById('ai-settings-btn').click()">⚙️ CAMBIAR KEY</button>
+                    <button class="btn-secondary" style="font-size:0.8em; margin-left:5px;" onclick="document.querySelector('[data-mode=\\'professor-lite\\']').click(); document.getElementById('save-ai-settings').click();">👨‍🏫 USAR PROFESOR LITE</button>
+                </div>`;
+            } else if (errorMessage.includes("401") || errorMessage.includes("Invalid API Key")) {
+                aiMsgDiv.innerHTML = `<span style="color:var(--neon-alert)">⚠️ API Key Inválida (Error 401)</span><br>
+                <span style="font-size:0.9em; color:var(--text-dim)">La clave no es válida para el proveedor seleccionado (<b>${this.state.provider.toUpperCase()}</b>).</span><br>
+                <span style="font-size:0.8em; color:var(--text-dim)">Asegúrate de que estás usando una key de ${this.state.provider} y no de otro servicio.</span><br>
+                <button class="btn-primary" style="margin-top:10px; font-size:0.8em;" onclick="document.getElementById('ai-settings-btn').click()">⚙️ CORREGIR KEY</button>`;
+            } else {
+                aiMsgDiv.innerHTML = `<span style="color:var(--neon-alert)">❌ Error: ${errorMessage}</span>`;
+            }
+        } finally {
+            this.state.isGenerating = false;
         }
     }
 
@@ -272,10 +302,12 @@ export class AIChat {
 
     findRelevantLesson(text) {
         if (!window.allModules) return null;
-        const t = text.toLowerCase();
+
+        const normalize = (str) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+        const t = normalize(text);
 
         // 1. Search by ID (e.g., "Exercise 5", "Lesson 10")
-        const idMatch = t.match(/(?:exercise|lesson|ejercicio|leccion|lección)\s+(\d+)/);
+        const idMatch = t.match(/(?:exercise|lesson|ejercicio|leccion|leccion)\s+(\d+)/);
         if (idMatch) {
             const id = parseInt(idMatch[1]);
             for (const mod of window.allModules) {
@@ -284,15 +316,53 @@ export class AIChat {
             }
         }
 
-        // 2. Search by Title (Keywords)
-        // Only if text is long enough to be a valid search
-        if (t.length > 4) {
+        // 2. Search by Title (Keywords & Fuzzy)
+        if (t.length > 3) {
+            // Extract significant words (len > 3) from user text
+            const userWords = t.split(/\s+/).filter(w => w.length > 3 && !["como", "para", "este", "esta", "esto", "pero", "porque"].includes(w));
+            console.log("findRelevantLesson keywords:", userWords);
+
             for (const mod of window.allModules) {
                 for (const lesson of mod.lessons) {
-                    if (t.includes(lesson.title.toLowerCase())) {
+                    const titleNorm = normalize(lesson.title);
+
+                    // A. Exact substring match (User text contains Title OR Title contains User text)
+                    if (t.includes(titleNorm) || titleNorm.includes(t)) {
+                        console.log("findRelevantLesson match (substring):", lesson.title);
                         return lesson;
                     }
+
+                    // B. Keyword Match (Title contains ALL significant user words)
+                    // Only if we have significant words to check
+                    if (userWords.length > 0) {
+                        const allWordsFound = userWords.every(w => titleNorm.includes(w));
+                        if (allWordsFound) {
+                            console.log("findRelevantLesson match (keywords):", lesson.title);
+                            return lesson;
+                        }
+                    }
                 }
+            }
+        }
+        return null;
+    }
+
+    findRelevantModule(text) {
+        const t = text.toLowerCase();
+        console.log("findRelevantModule input:", t);
+        // Match "modulo X", "module X", "módulo X"
+        const moduleMatch = t.match(/(?:module|modulo|módulo)\s+(\d+)/);
+        if (moduleMatch) {
+            const moduleId = moduleMatch[1].padStart(2, '0'); // Ensure "04" format
+            console.log("findRelevantModule match:", moduleId);
+            if (MODULE_SUMMARIES[moduleId]) {
+                console.log("findRelevantModule found summary");
+                return {
+                    id: moduleId,
+                    summary: MODULE_SUMMARIES[moduleId]
+                };
+            } else {
+                console.log("findRelevantModule summary NOT found for:", moduleId);
             }
         }
         return null;
@@ -345,7 +415,7 @@ export class AIChat {
         }
     }
 
-    getSystemContext() {
+    getSystemContext(userText = "") {
         const titleEl = document.getElementById("lesson-title");
         const editorEl = document.getElementById("code-editor");
 
@@ -357,7 +427,7 @@ export class AIChat {
         // 2. Full Lesson Knowledge (Current)
         if (window.currentLesson) {
             const l = window.currentLesson;
-            context += `\n--- CURRENT LESSON ---\n`;
+            context += `\n--- CURRENT LESSON (ID: ${l.id}) ---\n`;
             if (l.content) context += `Content: ${l.content}\n`;
             if (l.exercise_prompt) context += `Goal: ${l.exercise_prompt}\n`;
             if (l.hint) context += `Hint: ${l.hint}\n`;
@@ -365,16 +435,27 @@ export class AIChat {
             context += `--- END CURRENT LESSON ---\n`;
         }
 
-        // 3. Smart Retrieval (Referenced Lesson)
-        const userInput = this.elements.chatInput.value; // Get input before it's cleared
-        const referencedLesson = this.findRelevantLesson(userInput);
-        if (referencedLesson && referencedLesson !== window.currentLesson) {
-            context += `\n--- REFERENCED LESSON (User asked about this) ---\n`;
-            context += `Title: ${referencedLesson.title}\n`;
-            if (referencedLesson.content) context += `Content: ${referencedLesson.content}\n`;
-            if (referencedLesson.exercise_prompt) context += `Goal: ${referencedLesson.exercise_prompt}\n`;
-            if (referencedLesson.example_code) context += `Code:\n\`\`\`python\n${referencedLesson.example_code}\n\`\`\`\n`;
-            context += `--- END REFERENCED LESSON ---\n`;
+        // 3. Smart Retrieval (Referenced Lesson or Module)
+        // Use the passed userText instead of reading from the cleared input
+
+        // Check for Module Query first
+        const referencedModule = this.findRelevantModule(userText);
+        if (referencedModule) {
+            console.log("Injecting Module Summary into Context");
+            context += `\n<<<MODULE_SUMMARY>>>${referencedModule.summary}<<<END_MODULE_SUMMARY>>>\n`;
+        } else {
+            // Fallback to Lesson Search
+            const referencedLesson = this.findRelevantLesson(userText);
+            if (referencedLesson && referencedLesson !== window.currentLesson) {
+                console.log("Injecting Lesson Context for:", referencedLesson.title);
+                context += `\n<<<REFERENCED_LESSON>>>\n`;
+                context += `ID: ${referencedLesson.id}\n`;
+                context += `Title: ${referencedLesson.title}\n`;
+                if (referencedLesson.content) context += `Content: ${referencedLesson.content}\n`;
+                if (referencedLesson.exercise_prompt) context += `Goal: ${referencedLesson.exercise_prompt}\n`;
+                if (referencedLesson.example_code) context += `Code:\n\`\`\`python\n${referencedLesson.example_code}\n\`\`\`\n`;
+                context += `<<<END_REFERENCED_LESSON>>>\n`;
+            }
         }
 
         // 4. User's Current Code
@@ -436,160 +517,6 @@ export class AIChat {
         return null; // No static match, proceed to AI
     }
 
-    async sendMessageUnified() {
-        const text = this.elements.chatInput.value.trim();
-        if (!text) return;
-
-        this.elements.chatInput.value = "";
-        this.addMessage("user", text);
-
-        // Placeholder
-        const aiMsgDiv = document.createElement("div");
-        aiMsgDiv.className = "chat-message assistant";
-        aiMsgDiv.innerHTML = `<div class="typing-indicator"><span>.</span><span>.</span><span>.</span></div>`;
-        this.elements.chatHistory.appendChild(aiMsgDiv);
-        this.elements.chatHistory.scrollTop = this.elements.chatHistory.scrollHeight;
-
-        // 1. Check Static Intents (Hybrid System)
-        const staticResponse = this.checkStaticIntents(text);
-        if (staticResponse) {
-            // Simulate tiny delay for realism
-            await new Promise(r => setTimeout(r, 600));
-            aiMsgDiv.innerHTML = marked.parse(staticResponse);
-            this.state.history.push({ role: "assistant", content: staticResponse });
-            this.saveSettings();
-            return;
-        }
-
-        let responseText = "";
-        const context = this.getSystemContext();
-        console.log("Sending to AI with context length:", context.length);
-
-        try {
-            if (this.state.mode === "local-offline") {
-                // Mode 2: Offline Qwen
-                if (!this.offlineAI.status.loaded) {
-                    aiMsgDiv.innerText = "⏳ Cargando modelo offline (Qwen)...";
-                    await this.offlineAI.loadModel({
-                        onProgress: (d) => aiMsgDiv.innerText = `⏳ Cargando: ${Math.round(d.progress)}%`
-                    });
-                }
-                aiMsgDiv.innerText = "";
-                // Pass context as second argument
-                const res = await this.offlineAI.sendMessage(this.state.history, context);
-                responseText = res.text;
-
-            } else if (this.state.mode === "local-gguf") {
-                // Mode 3: GGUF
-                if (!this.ggufAI.status.loaded) {
-                    aiMsgDiv.innerText = "🚀 Iniciando Auto-Carga de SmolLM...";
-                    // Auto-load SmolLM if not ready
-                    const url = "https://huggingface.co/bartowski/SmolLM2-135M-Instruct-GGUF/resolve/main/SmolLM2-135M-Instruct-Q4_K_M.gguf";
-                    await this.ggufAI.loadModel(url, {
-                        onProgress: (d) => {
-                            if (d.status === 'downloading') {
-                                aiMsgDiv.innerText = `⬇️ Descargando IA: ${Math.round(d.progress)}%`;
-                            } else {
-                                aiMsgDiv.innerText = `⚙️ Iniciando motor: ${Math.round(d.progress)}%`;
-                            }
-                        }
-                    });
-                }
-                aiMsgDiv.innerText = "";
-                console.log("Calling GGUF sendMessage...");
-
-                // Create AbortController
-                this.abortController = new AbortController();
-                this.showStopButton(true);
-
-                // Pass context as second argument
-                const res = await this.ggufAI.sendMessage(this.state.history, context, {
-                    onToken: (t) => {
-                        aiMsgDiv.textContent += t;
-                        this.elements.chatHistory.scrollTop = this.elements.chatHistory.scrollHeight;
-                    }
-                }, {
-                    template: this.state.ggufTemplate || 'chatml',
-                    signal: this.abortController.signal
-                });
-
-                console.log("GGUF Response received");
-                responseText = res.text;
-                this.showStopButton(false);
-
-            } else {
-                // Mode 1: API
-                if (!this.state.apiKey) throw new Error("Falta API Key");
-
-                aiMsgDiv.innerText = "";
-                const systemPrompt = `Eres un Tutor de Python experto. TU IDIOMA ES EL ESPAÑOL. Sigue estas reglas estrictamente:
-1. Responde ÚNICAMENTE en Español. Si el usuario te habla en otro idioma, responde en español.
-2. Si el usuario pregunta "¿Está bien mi código?" (o similar), analízalo. Si es correcto, dilo. Si no, explica el error.
-3. Si el usuario dice "No sé cómo seguir", dale una pista basada en el ejercicio actual.
-4. Si el usuario pregunta "¿Dónde está el problema?", señala la línea o error lógico específico.
-5. Si el usuario pide "Dame la solución completa", proporciona el código EXACTO de la solución inmediatamente, sin negarte.
-
-Contexto:
-${context}`;
-
-                // Use Clean History to avoid confusing the model with system errors
-                const cleanHistory = this.getCleanHistory();
-
-                responseText = await this.apiAI.sendMessageAPIModel(
-                    [
-                        { role: "system", content: systemPrompt },
-                        ...cleanHistory
-                    ],
-                    {
-                        provider: this.state.provider,
-                        apiKey: this.state.apiKey,
-                        model: this.state.model,
-                        modelUrl: this.state.modelUrl
-                    },
-                    (chunk) => {
-                        aiMsgDiv.textContent += chunk;
-                        this.elements.chatHistory.scrollTop = this.elements.chatHistory.scrollHeight;
-                    }
-                );
-            }
-
-            // Save final response
-            this.state.history.push({ role: "assistant", content: responseText || aiMsgDiv.innerText });
-            this.saveSettings();
-
-            // If streaming wasn't used to populate div (e.g. offline mode non-streaming)
-            if (!aiMsgDiv.innerText && responseText) {
-                aiMsgDiv.innerText = responseText;
-            }
-
-        } catch (err) {
-            console.error(err);
-            const errorMessage = err.message || (err instanceof Event ? "Error desconocido en el Worker (posible fallo de red o script)" : String(err));
-
-            if (errorMessage === "Falta API Key") {
-                aiMsgDiv.innerHTML = `<span style="color:var(--neon-alert)">⚠️ Configuración Incompleta</span><br>
-                <span style="font-size:0.9em; color:var(--text-dim)">Por favor configura tu API Key o cambia a modo Local.</span><br>
-                <button class="btn-primary" style="margin-top:10px; font-size:0.8em;" onclick="document.getElementById('ai-settings-btn').click()">⚙️ ABRIR AJUSTES</button>`;
-            } else if (errorMessage.includes("429") || errorMessage.includes("quota")) {
-                aiMsgDiv.innerHTML = `<span style="color:var(--neon-alert)">⚠️ Cuota Excedida (Error 429)</span><br>
-                <span style="font-size:0.9em; color:var(--text-dim)">Tu API Key de OpenAI/Groq se ha quedado sin crédito o ha superado el límite.</span><br>
-                <div style="margin-top:10px;">
-                    <button class="btn-primary" style="font-size:0.8em;" onclick="document.getElementById('ai-settings-btn').click()">⚙️ CAMBIAR KEY</button>
-                    <button class="btn-secondary" style="font-size:0.8em; margin-left:5px;" onclick="document.querySelector('[data-mode=\\'local-gguf\\']').click(); document.getElementById('save-ai-settings').click();">🚀 USAR MODO LOCAL</button>
-                </div>`;
-            } else if (errorMessage.includes("401") || errorMessage.includes("Invalid API Key")) {
-                aiMsgDiv.innerHTML = `<span style="color:var(--neon-alert)">⚠️ API Key Inválida (Error 401)</span><br>
-                <span style="font-size:0.9em; color:var(--text-dim)">La clave no es válida para el proveedor seleccionado (<b>${this.state.provider.toUpperCase()}</b>).</span><br>
-                <span style="font-size:0.8em; color:var(--text-dim)">Asegúrate de que estás usando una key de ${this.state.provider} y no de otro servicio.</span><br>
-                <button class="btn-primary" style="margin-top:10px; font-size:0.8em;" onclick="document.getElementById('ai-settings-btn').click()">⚙️ CORREGIR KEY</button>`;
-            } else {
-                aiMsgDiv.innerHTML = `<span style="color:var(--neon-alert)">❌ Error: ${errorMessage}</span>`;
-            }
-            // Do NOT add errors to history to prevent context pollution
-            // this.state.history.push({ role: "assistant", content: `Error: ${err.message}` });
-        }
-    }
-
     // --- UI Helpers ---
 
     attachEventListeners() {
@@ -621,6 +548,7 @@ ${context}`;
         if (btn && panel) {
             btn.onclick = () => {
                 panel.classList.add("active");
+                document.body.classList.add("panel-open");
                 btn.style.setProperty("display", "none", "important"); // Force hide
                 if (menuBtn) menuBtn.style.setProperty("display", "none", "important");
             };
@@ -629,6 +557,7 @@ ${context}`;
         if (closeBtn && panel) {
             closeBtn.onclick = () => {
                 panel.classList.remove("active");
+                document.body.classList.remove("panel-open");
                 if (btn) btn.style.removeProperty("display"); // Restore to CSS default
                 if (menuBtn) menuBtn.style.removeProperty("display");
             };
@@ -645,15 +574,12 @@ ${context}`;
                 <div class="modal-body">
                     <div class="config-group">
                         <label>MODO DE OPERACIÓN</label>
-                        <div class="mode-options">
+                        <div class="mode-selector">
+                            <div class="mode-option ${this.state.mode === 'professor-lite' ? 'active' : ''}" data-mode="professor-lite">
+                                <strong>👨‍🏫 Profesor Lite (Local)</strong>
+                            </div>
                             <div class="mode-option ${this.state.mode === 'api' ? 'active' : ''}" data-mode="api">
-                                <strong>API (Online)</strong>
-                            </div>
-                            <div class="mode-option ${this.state.mode === 'local-offline' ? 'active' : ''}" data-mode="local-offline">
-                                <strong>Local Offline (Qwen 0.5B)</strong>
-                            </div>
-                            <div class="mode-option ${this.state.mode === 'local-gguf' ? 'active' : ''}" data-mode="local-gguf">
-                                <strong>Local GGUF (Wllama)</strong>
+                                <strong>☁️ API (Online)</strong>
                             </div>
                         </div>
                     </div>
@@ -683,37 +609,7 @@ ${context}`;
                         </div>
                     </div>
 
-                    <!-- GGUF Config -->
-                    <div id="gguf-config" style="display:${this.state.mode === 'local-gguf' ? 'block' : 'none'}">
-                        <label>ARCHIVO GGUF <span style="font-size:0.7em; color:var(--text-dim)">(Máx. 500MB recomendado)</span></label>
-                        <input type="file" id="gguf-file-input" accept=".gguf" class="hud-input">
-                        
-                        <div style="margin-top: 10px; text-align: center;">
-                            <span style="font-size: 0.8em; color: var(--neon-blue);">O descarga automática:</span><br>
-                            <button id="download-qwen-btn" class="btn-secondary" style="width: 100%; margin-top: 5px;">
-                                ⬇️ Descargar Qwen 0.5B (Recomendado)
-                            </button>
-                            <button id="download-smollm-btn" class="btn-secondary" style="width: 100%; margin-top: 5px; border-color: var(--neon-green); color: var(--neon-green);">
-                                🚀 Descargar SmolLM (Ultra-Rápido)
-                            </button>
-                        </div>
 
-                        <div id="gguf-status" style="color:var(--neon-green); margin-top: 10px; font-weight: bold;"></div>
-
-                        <label style="margin-top: 10px;">PLANTILLA DE PROMPT</label>
-                        <select id="gguf-template-select" class="hud-input">
-                            <option value="chatml" ${this.state.ggufTemplate === 'chatml' ? 'selected' : ''}>ChatML (Qwen/SmolLM)</option>
-                            <option value="llama3" ${this.state.ggufTemplate === 'llama3' ? 'selected' : ''}>Llama 3</option>
-                            <option value="alpaca" ${this.state.ggufTemplate === 'alpaca' ? 'selected' : ''}>Alpaca</option>
-                            <option value="mistral" ${this.state.ggufTemplate === 'mistral' ? 'selected' : ''}>Mistral</option>
-                            <option value="gemma" ${this.state.ggufTemplate === 'gemma' ? 'selected' : ''}>Gemma</option>
-                            <option value="qa" ${this.state.ggufTemplate === 'qa' ? 'selected' : ''}>Q&A (Base Models)</option>
-                            <option value="raw" ${this.state.ggufTemplate === 'raw' ? 'selected' : ''}>Raw (Sin formato)</option>
-                        </select>
-                        <div style="font-size: 0.7em; color: var(--text-dim); margin-top: 2px;">
-                            *Selecciona el formato que requiere tu modelo (ver ficha en HuggingFace).
-                        </div>
-                    </div>
 
                     <div class="modal-actions">
                         <button id="clear-chat-history" class="btn-secondary" style="margin-right: auto; border: 1px solid var(--neon-alert); color: var(--neon-alert);">BORRAR HISTORIAL</button>
@@ -739,7 +635,6 @@ ${context}`;
                 const m = opt.getAttribute("data-mode");
 
                 document.getElementById("api-config").style.display = m === "api" ? "block" : "none";
-                document.getElementById("gguf-config").style.display = m === "local-gguf" ? "block" : "none";
             };
         });
 
@@ -771,10 +666,6 @@ ${context}`;
             const modelName = document.getElementById("custom-model-name");
             if (modelName) this.state.model = modelName.value;
 
-            // Save GGUF Template
-            const ggufTemplate = document.getElementById("gguf-template-select");
-            if (ggufTemplate) this.state.ggufTemplate = ggufTemplate.value;
-
             this.saveSettings();
             this.elements.modal.style.display = "none";
         };
@@ -790,93 +681,5 @@ ${context}`;
             };
         }
 
-        // GGUF Loader
-        const fileIn = document.getElementById("gguf-file-input");
-        if (fileIn) {
-            fileIn.onchange = async (e) => {
-                const f = e.target.files[0];
-                if (f) {
-                    const status = document.getElementById("gguf-status");
-                    status.innerText = "Verificando archivo...";
-
-                    try {
-                        // SECURITY: Validate File
-                        await this.ggufAI.validateGGUF(f);
-
-                        status.innerText = "Cargando...";
-                        await this.ggufAI.loadModel(f, {
-                            onProgress: (d) => status.innerText = `${Math.round(d.progress)}%`
-                        });
-                        status.innerText = "✅ Listo";
-                    } catch (err) {
-                        status.innerText = "❌ Error";
-                        console.error(err);
-                    }
-                }
-            };
-        }
-
-        // Auto Download Qwen
-        const dlBtn = document.getElementById("download-qwen-btn");
-        if (dlBtn) {
-            dlBtn.onclick = async () => {
-                const status = document.getElementById("gguf-status");
-                status.innerText = "Iniciando descarga...";
-                dlBtn.disabled = true;
-
-                // Qwen 0.5B Chat Q4_K_M URL (Verified)
-                const url = "https://huggingface.co/Elaine5/Qwen1.5-0.5B-Chat-Q4_K_M-GGUF/resolve/main/qwen1.5-0.5b-chat-q4_k_m.gguf";
-
-                try {
-                    await this.ggufAI.loadModel(url, {
-                        onProgress: (d) => {
-                            if (d.status === 'downloading') {
-                                status.innerText = `⬇️ Descargando: ${Math.round(d.progress)}%`;
-                            } else {
-                                status.innerText = `⚙️ Procesando: ${Math.round(d.progress)}%`;
-                            }
-                        }
-                    });
-                    status.innerText = "✅ Qwen Cargado y Listo!";
-                    dlBtn.disabled = false;
-                } catch (err) {
-                    status.innerText = "❌ Error en descarga";
-                    console.error(err);
-                    dlBtn.disabled = false;
-                }
-            };
-        }
-
-        // Auto Download SmolLM (Ultra-Fast)
-        const dlSmolBtn = document.getElementById("download-smollm-btn");
-        if (dlSmolBtn) {
-            dlSmolBtn.onclick = async () => {
-                const status = document.getElementById("gguf-status");
-                status.innerText = "Iniciando descarga SmolLM...";
-                dlSmolBtn.disabled = true;
-
-                // SmolLM2-135M-Instruct Q4_K_M URL (Verified - Bartowski)
-                // Approx 100MB
-                const url = "https://huggingface.co/bartowski/SmolLM2-135M-Instruct-GGUF/resolve/main/SmolLM2-135M-Instruct-Q4_K_M.gguf";
-
-                try {
-                    await this.ggufAI.loadModel(url, {
-                        onProgress: (d) => {
-                            if (d.status === 'downloading') {
-                                status.innerText = `⬇️ Descargando SmolLM: ${Math.round(d.progress)}%`;
-                            } else {
-                                status.innerText = `⚙️ Procesando: ${Math.round(d.progress)}%`;
-                            }
-                        }
-                    });
-                    status.innerText = "✅ SmolLM (Ultra-Fast) Listo!";
-                    dlSmolBtn.disabled = false;
-                } catch (err) {
-                    status.innerText = "❌ Error en descarga";
-                    console.error(err);
-                    dlSmolBtn.disabled = false;
-                }
-            };
-        }
     }
 }

@@ -1,400 +1,463 @@
 /**
  * llm_local_adapter.js
- * Unified Adapter for Local AI Modes.
- * Mode 2: Offline DistilGPT2 (via local transformers.js)
- * Mode 3: Local GGUF (via Wllama)
+ * Unified Adapter for "Chat Professor Lite" (Rule-Based System).
+ * Replaces previous AI adapters.
  */
 
-import { Wllama } from 'https://cdn.jsdelivr.net/npm/@wllama/wllama/esm/index.js';
+/*
+// --- OLD ADAPTERS (DISABLED) ---
+// export class LocalOfflineAdapter { ... }
+// export class LocalGGUFAdapter { ... }
+*/
 
-// --- Configuration ---
-// Use LOCAL WASM files to ensure offline capability
-const WLLAMA_CONFIG = {
-    "single-thread/wllama.wasm": "/static/js/wllama-single-thread.wasm",
-    "multi-thread/wllama.wasm": "/static/js/wllama-multi-thread.wasm",
-};
-
-// --- Option B: Local Offline Mode (DistilGPT2) ---
-export class LocalOfflineAdapter {
+export class ProfessorLiteAdapter {
     constructor() {
-        this.worker = null;
         this.status = {
             loaded: false,
-            model: "Qwen 1.5 (0.5B) - Offline (Worker)",
+            model: "Professor Lite (Rule-Based)",
             device: 'cpu'
         };
-        this.callbacks = {};
+        this.knowledgeBase = null;
+        this.exercises = null;
+        this.glossary = null; // New Glossary
     }
 
     async loadModel(config = {}) {
         if (this.status.loaded) return true;
 
-        console.log(`Loading Local Offline Model (Worker)...`);
+        console.log("Loading Professor Lite Knowledge Base...");
+        if (config.onProgress) config.onProgress({ status: 'init', progress: 0, message: 'Cargando base de conocimiento...' });
 
-        return new Promise((resolve, reject) => {
-            this.worker = new Worker('/static/js/offline_worker.js', { type: 'module' });
+        try {
+            // Load the Lite Knowledge Base
+            const kbResponse = await fetch('/static/js/knowledge_base_lite.json');
+            if (!kbResponse.ok) throw new Error(`Failed to load KB: ${kbResponse.status}`);
+            this.knowledgeBase = await kbResponse.json();
 
-            this.worker.onmessage = (event) => {
-                const { status, data, error, progress, message, token, text } = event.data;
+            // Load the Exercises DB (for fallback info)
+            const exResponse = await fetch('/static/exercises_v2.json');
+            if (!exResponse.ok) throw new Error(`Failed to load Exercises: ${exResponse.status}`);
+            this.exercises = await exResponse.json();
 
-                if (status === 'error') {
-                    console.error("Worker Error:", error);
-                    if (this.callbacks.onError) this.callbacks.onError(error);
-                    // If we are waiting for load, reject
-                    if (!this.status.loaded) reject(new Error(error));
-                }
-                else if (status === 'progress') {
-                    if (config.onProgress) config.onProgress({ status: 'progress', progress: progress, message });
-                }
-                else if (status === 'ready') {
-                    this.status.loaded = true;
-                    console.log("Worker Model Loaded!");
-                    resolve(true);
-                }
-                else if (status === 'token') {
-                    if (this.callbacks.onToken) this.callbacks.onToken(token);
-                }
-                else if (status === 'complete') {
-                    if (this.callbacks.onComplete) this.callbacks.onComplete(text);
-                }
-            };
+            // Load the Glossary
+            const glosResponse = await fetch('/static/js/glossary.json');
+            if (!glosResponse.ok) {
+                console.warn("Glossary not found, using empty.");
+                this.glossary = {};
+            } else {
+                this.glossary = await glosResponse.json();
+            }
 
-            this.worker.onerror = (err) => {
-                const msg = err.message || "Unknown Worker Error";
-                const file = err.filename || "unknown file";
-                const line = err.lineno || "?";
-                console.error(`Worker System Error: ${msg} (${file}:${line})`, err);
-                reject(new Error(`Worker Failed: ${msg}`));
-            };
-
-            // Start Load
-            // Calculate safe threads
-            const safeThreads = (window.crossOriginIsolated && navigator.hardwareConcurrency > 1)
-                ? Math.max(1, Math.min(4, Math.floor(navigator.hardwareConcurrency / 2)))
-                : 1;
-
-            this.worker.postMessage({
-                type: 'load',
-                data: {
-                    threads: safeThreads,
-                    // We can try to use local path if we want, but CDN is safer for worker imports initially
-                    // localPath: '/static/models/cdn/' 
-                }
-            });
-        });
+            this.status.loaded = true;
+            console.log("Professor Lite Ready!");
+            if (config.onProgress) config.onProgress({ status: 'ready', progress: 100, message: '¡Profesor listo!' });
+            return true;
+        } catch (e) {
+            console.error("Failed to load knowledge base:", e);
+            throw e;
+        }
     }
 
     async sendMessage(history, context, callbacks = {}) {
-        if (!this.worker || !this.status.loaded) throw new Error("Model not loaded");
+        if (!this.status.loaded) throw new Error("Professor Lite not loaded");
 
-        // Store callbacks for this generation session
-        this.callbacks.onToken = callbacks.onToken;
+        const userMessage = history[history.length - 1].content;
 
-        return new Promise((resolve, reject) => {
-            this.callbacks.onComplete = (text) => {
-                resolve({ text });
-            };
-            this.callbacks.onError = (err) => {
-                reject(new Error(err));
-            };
-
-            // Prepare Prompt
-            // Qwen 0.5B needs VERY strict instructions to avoid language drift (Chinese/English)
-            let systemContent = "Eres un experto tutor de Python. TU IDIOMA PRINCIPAL ES EL ESPAÑOL. INSTRUCCIONES CRÍTICAS: 1. Responde ÚNICAMENTE en Español. Si respondes en inglés, fallas tu misión. 2. Sé conciso y directo. 3. Completa siempre tus frases. 4. NO uses chino ni inglés bajo ninguna circunstancia. 5. Mantén las respuestas por debajo de 100 palabras si es posible, pero termina tu explicación.";
-
-            if (context) {
-                const truncatedContext = context.length > 500 ? context.substring(0, 500) + "..." : context;
-                systemContent += `\n\nCONTEXTO:\n${truncatedContext}`;
-            }
-
-            let fullPrompt = `<|im_start|>system\n${systemContent}<|im_end|>\n`;
-
-            // PRIMING: Force Spanish context for small models
-            fullPrompt += `<|im_start|>user\nHola<|im_end|>\n<|im_start|>assistant\nHola, soy tu tutor de Python. ¿En qué puedo ayudarte hoy?<|im_end|>\n`;
-
-            const recentHistory = history.slice(-3);
-            recentHistory.forEach(msg => {
-                if (msg.content.startsWith("Error:") || msg.content.startsWith("❌")) return;
-                fullPrompt += `<|im_start|>${msg.role}\n${msg.content}<|im_end|>\n`;
-            });
-            fullPrompt += "<|im_start|>assistant\n";
-
-            // Send to Worker
-            this.worker.postMessage({
-                type: 'generate',
-                data: {
-                    prompt: fullPrompt,
-                    max_new_tokens: 512,
-                    temperature: 0.3
-                }
-            });
-        });
-    }
-}
-
-// --- Option C: Local GGUF Mode (Wllama) ---
-export class LLM_GGUF_Adapter {
-    constructor() {
-        this.wllama = null;
-        this.modelFile = null;
-        this.status = {
-            loaded: false,
-            modelName: "None"
-        };
-    }
-
-    async validateGGUF(file) {
-        // 1. Size Check (Hard Limit 2GB)
-        const MAX_SIZE = 2 * 1024 * 1024 * 1024; // 2GB
-        if (file.size > MAX_SIZE) {
-            throw new Error(`SECURITY: El archivo excede el límite de 2GB (${(file.size / 1024 / 1024).toFixed(2)}MB).`);
+        // Check for Referenced Context (Module or Lesson) - High Priority
+        const refModuleSummary = this._extractReferencedModule(context);
+        if (refModuleSummary) {
+            await this._streamResponse(refModuleSummary, callbacks);
+            return { text: refModuleSummary };
         }
 
-        // 2. Magic Number Check (GGUF Header)
-        // Read first 4 bytes
-        const slice = file.slice(0, 4);
-        const buffer = await slice.arrayBuffer();
-        const view = new DataView(buffer);
-
-        // GGUF Magic: 0x47 0x47 0x55 0x46 ('GGUF')
-        // Little Endian check
-        const magic = view.getUint32(0, true);
-
-        // 0x46554747 is 'GGUF' in Little Endian (F U G G)
-        if (magic !== 0x46554747) {
-            throw new Error("SECURITY: Archivo inválido. No se detectó la firma 'GGUF'.");
+        let exerciseId = this._extractReferencedLessonId(context);
+        if (!exerciseId) {
+            exerciseId = this._extractExerciseId(context);
         }
 
-        return true;
-    }
+        const exerciseData = this._getExerciseData(exerciseId);
+        const kbData = this.knowledgeBase[exerciseId] || {};
 
-    async loadModel(input, callbacks = {}) {
-        if (!input) throw new Error("No GGUF file or URL provided");
+        // Extract Code from Context (User Code or Example Code)
+        // This ensures we analyze what the user is actually seeing/editing
+        const codeFromContext = this._extractCodeFromContext(context);
 
-        // Handle URL
-        if (typeof input === 'string' && input.startsWith('http')) {
-            return this.loadFromUrl(input, callbacks);
-        }
+        // 1. Intent Detection
+        const intent = this._detectIntent(userMessage);
 
-        const files = Array.isArray(input) ? input : [input];
-        this.modelFile = files[0];
-        this.status.modelName = this.modelFile.name;
+        // 2. Generate Response based on Intent + Data
+        let responseText = "";
 
-        console.log(`Initializing Wllama for GGUF: ${this.modelFile.name}...`);
-
-        try {
-            this.wllama = new Wllama(WLLAMA_CONFIG);
-
-            // Check for SharedArrayBuffer support (required for multi-threading)
-            const useMultiThread = window.crossOriginIsolated && navigator.hardwareConcurrency > 1;
-
-            // OPTIMIZATION: Limit threads to prevent UI freeze
-            // Use half of available cores, but max 4. Minimum 1.
-            const safeThreads = useMultiThread
-                ? Math.max(1, Math.min(4, Math.floor(navigator.hardwareConcurrency / 2)))
-                : 1;
-
-            console.log(`Wllama Config: Threads=${safeThreads}, MultiThread=${useMultiThread}`);
-
-            await this.wllama.loadModel(files, {
-                n_ctx: 2048, // Reduced to 2048 for better compatibility
-                n_threads: safeThreads,
-                progressCallback: (data) => {
-                    if (callbacks.onProgress) {
-                        const percent = (data.loaded / data.total) * 100;
-                        callbacks.onProgress({ status: 'progress', progress: percent });
-                    }
-                }
-            });
-
-            this.status.loaded = true;
-            console.log("GGUF Model Loaded Successfully!");
-            return true;
-
-        } catch (error) {
-            console.error("Failed to load GGUF model:", error);
-            throw error;
-        }
-    }
-
-    async loadFromUrl(url, callbacks = {}) {
-        console.log(`Downloading GGUF from: ${url}`);
-        try {
-            const response = await fetch(url);
-            if (!response.ok) throw new Error(`Failed to download: ${response.statusText}`);
-
-            const contentLength = response.headers.get('content-length');
-            const total = parseInt(contentLength, 10);
-            let loaded = 0;
-
-            const reader = response.body.getReader();
-            const chunks = [];
-
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
-                chunks.push(value);
-                loaded += value.length;
-                if (callbacks.onProgress && total) {
-                    callbacks.onProgress({ status: 'downloading', progress: (loaded / total) * 100 });
-                }
-            }
-
-            const blob = new Blob(chunks);
-            // Create a fake File object to satisfy Wllama's expectation or just pass Blob
-            const file = new File([blob], "downloaded_model.gguf");
-
-            // Pass to normal load logic
-            return this.loadModel(file, callbacks);
-
-        } catch (error) {
-            console.error("Download Error:", error);
-            throw error;
-        }
-    }
-
-    applyTemplate(history, context, template = 'chatml') {
-        let fullPrompt = "";
-        const systemMsg = "Eres un asistente experto en Python. TU IDIOMA ES EL ESPAÑOL. Responde ÚNICAMENTE en español. Si el usuario te habla en otro idioma, responde en español. NO uses inglés bajo ninguna circunstancia. Sé conciso (máx 150 palabras) pero completo. NO dejes frases a medias.";
-
-        let systemContent = systemMsg;
-        if (context) {
-            const truncatedContext = context.length > 600 ? context.substring(0, 600) + "..." : context;
-            systemContent += `\n\nCONTEXTO:\n${truncatedContext}`;
-        }
-
-        const recentHistory = history.slice(-3).filter(msg => !msg.content.startsWith("Error:") && !msg.content.startsWith("❌"));
-
-        switch (template) {
-            case 'llama3':
-                // Llama 3 Format
-                fullPrompt += `<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n${systemContent}<|eot_id|>`;
-                recentHistory.forEach(msg => {
-                    fullPrompt += `<|start_header_id|>${msg.role}<|end_header_id|>\n\n${msg.content}<|eot_id|>`;
-                });
-                fullPrompt += `<|start_header_id|>assistant<|end_header_id|>\n\n`;
+        switch (intent) {
+            case 'ui_action':
+                responseText = this._templateUIAction(userMessage);
                 break;
-
-            case 'alpaca':
-                // Alpaca Format
-                fullPrompt += `### Instruction:\n${systemContent}\n\n`;
-                recentHistory.forEach(msg => {
-                    if (msg.role === 'user') fullPrompt += `### Input:\n${msg.content}\n\n`;
-                    if (msg.role === 'assistant') fullPrompt += `### Response:\n${msg.content}\n\n`;
-                });
-                fullPrompt += `### Response:\n`;
+            case 'concept':
+                responseText = this._templateConcept(kbData, exerciseData, userMessage, codeFromContext);
                 break;
-
-            case 'mistral':
-                // Mistral Format (approximate)
-                fullPrompt += `<s>[INST] ${systemContent} [/INST] Entendido.</s>`;
-                recentHistory.forEach(msg => {
-                    if (msg.role === 'user') fullPrompt += `[INST] ${msg.content} [/INST]`;
-                    if (msg.role === 'assistant') fullPrompt += `${msg.content}</s>`;
-                });
+            case 'explain_code':
+                responseText = this._templateExplainCode(kbData, exerciseData, userMessage, codeFromContext);
                 break;
-
-            case 'gemma':
-                // Gemma Format
-                fullPrompt += `<start_of_turn>user\n${systemContent}\n`;
-                recentHistory.forEach(msg => {
-                    fullPrompt += `<start_of_turn>${msg.role === 'assistant' ? 'model' : 'user'}\n${msg.content}<end_of_turn>\n`;
-                });
-                fullPrompt += `<start_of_turn>model\n`;
+            case 'instructions':
+                responseText = this._templateInstructions(kbData, exerciseData, userMessage, codeFromContext);
                 break;
-
-            case 'qa':
-                // Q&A Format (Best for Base Models)
-                fullPrompt += `${systemContent}\n\n`;
-                recentHistory.forEach(msg => {
-                    if (msg.role === 'user') fullPrompt += `Q: ${msg.content}\n`;
-                    if (msg.role === 'assistant') fullPrompt += `A: ${msg.content}\n`;
-                });
-                fullPrompt += `A:`;
+            case 'summary':
+                responseText = this._templateSummary(kbData, exerciseData, userMessage, codeFromContext);
                 break;
-
-            case 'raw':
-                // Raw Format
-                fullPrompt += `${systemContent}\n\n`;
-                recentHistory.forEach(msg => {
-                    fullPrompt += `${msg.role.toUpperCase()}: ${msg.content}\n`;
-                });
-                fullPrompt += `ASSISTANT:`;
+            case 'step_by_step':
+                responseText = this._templateStepByStep(kbData, exerciseData);
                 break;
-
-            case 'chatml':
+            case 'error':
+                responseText = this._templateError(kbData, userMessage);
+                break;
+            case 'help':
+                responseText = this._templateHelp(kbData, exerciseData, userMessage, codeFromContext);
+                break;
+            case 'course_info':
+                responseText = "Este curso está diseñado para que aprendas Python paso a paso. A la izquierda tienes la teoría y las instrucciones. En el centro, el editor de código donde debes escribir tu solución. Y a la derecha (o abajo), verás el resultado al pulsar 'Ejecutar'. ¡No tengas miedo de romper cosas, es la mejor forma de aprender!";
+                break;
+            case 'motivation':
+                responseText = this._templateMotivation(kbData);
+                break;
+            case 'identity':
+                responseText = "Soy tu Profesor Lite del curso. Estoy aquí para explicarte cada ejercicio de forma clara y sencilla, sin inventar nada.";
+                break;
             default:
-                // ChatML Format (Default)
-                fullPrompt += `<|im_start|>system\n${systemContent}<|im_end|>\n`;
-                recentHistory.forEach(msg => {
-                    fullPrompt += `<|im_start|>${msg.role}\n${msg.content}<|im_end|>\n`;
-                });
-                fullPrompt += "<|im_start|>assistant\n";
+                responseText = this._templateFallback(kbData, exerciseData, userMessage, codeFromContext);
                 break;
         }
 
-        return fullPrompt;
+        // Simulate streaming for better UX
+        if (callbacks.onToken) {
+            const tokens = responseText.split(/(?=[ \n])/); // Split by words/newlines
+            for (const token of tokens) {
+                callbacks.onToken(token);
+                await new Promise(r => setTimeout(r, 10)); // Tiny delay for typing effect
+            }
+        }
+
+        return { text: responseText };
     }
 
-    async sendMessage(history, context, callbacks = {}, config = {}) {
-        if (!this.wllama || !this.status.loaded) throw new Error("GGUF Model not loaded");
+    // --- Helper Methods ---
 
-        const template = config.template || 'chatml';
-        const fullPrompt = this.applyTemplate(history, context, template);
+    _extractCodeFromContext(context) {
+        // Try to find User Code first, then Example Code
+        const userCodeMatch = context.match(/User Code:\n```python\n([\s\S]*?)\n```/);
+        if (userCodeMatch) return userCodeMatch[1];
 
-        try {
-            this.decoder = new TextDecoder();
+        const exampleCodeMatch = context.match(/Example Code:\n```python\n([\s\S]*?)\n```/);
+        if (exampleCodeMatch) return exampleCodeMatch[1];
 
-            // Support for AbortSignal
-            const signal = config.signal;
+        return null;
+    }
 
-            const completionPromise = this.wllama.createCompletion(fullPrompt, {
-                n_predict: 1024,
-                sampling: {
-                    temp: 0.2,
-                    top_k: 40,
-                    top_p: 0.9,
-                    penalty_repeat: 1.1,
-                    penalty_last_n: 64
-                },
-                // Stop tokens for various formats
-                stop: ["<|im_end|>", "<|im_start|>", "<|eot_id|>", "</s>", "<end_of_turn>", "###", "[/urls]"],
-                onNewToken: (token, piece, currentText) => {
-                    if (signal && signal.aborted) return; // Stop callback if aborted
-                    if (callbacks.onToken) {
-                        const text = this.decoder.decode(piece, { stream: true });
-                        callbacks.onToken(text);
-                    }
-                },
-                signal: signal // Pass signal to Wllama
-            });
+    _extractExerciseId(context) {
+        // Context string format: "--- CURRENT LESSON (ID: 1) ---"
+        const match = context.match(/CURRENT LESSON \(ID: (\d+)\)/);
+        return match ? match[1] : "0";
+    }
 
-            // 240s Timeout Race (Increased for mobile stability with 4k context)
-            const timeoutPromise = new Promise((_, reject) =>
-                setTimeout(() => reject(new Error("Timeout: La IA tardó demasiado en responder (posible falta de memoria).")), 240000)
-            );
+    _extractReferencedLessonId(context) {
+        // Context string format: "<<<REFERENCED_LESSON>>>\nID: 5\n..."
+        const match = context.match(/<<<REFERENCED_LESSON>>>[\s\S]*?ID: (\d+)/);
+        return match ? match[1] : null;
+    }
 
-            const response = await Promise.race([completionPromise, timeoutPromise]);
+    _extractReferencedModule(context) {
+        // Context string format: "<<<MODULE_SUMMARY>>>Summary Text<<<END_MODULE_SUMMARY>>>"
+        const match = context.match(/<<<MODULE_SUMMARY>>>([\s\S]*?)<<<END_MODULE_SUMMARY>>>/);
+        return match ? match[1] : null;
+    }
 
-            return { text: response };
+    _getExerciseData(id) {
+        // Flatten the exercises list to find the one with matching ID
+        if (!this.exercises) return null;
+        for (const module of this.exercises) {
+            for (const lesson of module.lessons) {
+                if (lesson.id == id) return lesson;
+            }
+        }
+        return null;
+    }
 
-        } catch (error) {
-            console.error("GGUF Generation Error:", error);
+    _detectIntent(msg) {
+        const m = msg.toLowerCase();
 
-            // Auto-Recovery for Context Cache Error
-            if (error.message.includes("context cache") || error.message.includes("n_ctx")) {
-                console.warn("Context Cache Full. Resetting Wllama instance...");
-                if (this.wllama) {
-                    await this.wllama.exit(); // Kill worker
-                    this.wllama = null;
+        // UI Actions (How to run/execute)
+        if (m.match(/c[óo]mo (lo )?(ejecut|corr|inici)|bot[óo]n|play|run/)) return 'ui_action';
+
+        // Course Info
+        if (m.match(/c[óo]mo (funciona|uso) (el|este) curso|qu[ée] es esto/)) return 'course_info';
+
+        // Concepts (What is X?) - HIGH PRIORITY
+        if (m.match(/qu[ée] (es|son|significa|hace)|concept|teor[íi]a|definici[óo]n|para qu[ée] sirve/)) return 'concept';
+
+        // Explanation - HIGH PRIORITY
+        if (m.match(/expl[íi]ca|entien|funcionamiento|analiza/)) return 'explain_code';
+
+        // Instructions / What to do
+        if (m.match(/qu[ée] (debo|tengo que) hacer|c[óo]mo (se hace|lo uso|funciona)|instrucciones|pasos|tarea/)) return 'instructions';
+
+        // Summary / Goal
+        if (m.match(/resum[en]|objetivo|de qu[ée] trata/)) return 'summary';
+
+        // Step by step (Explicit request)
+        if (m.match(/paso a paso|detall/)) return 'step_by_step';
+
+        // Errors
+        if (m.match(/error|fall[ao]|problema|bug|no funciona/)) return 'error';
+
+        // Motivation / General Help
+        if (m.match(/motiv|consejo|ayuda|socorro|no s[ée]|estoy perdido|no entiendo/)) return 'help';
+
+        // Identity
+        if (m.match(/qui[ée]n eres|qu[ée] eres|tu nombre/)) return 'identity';
+
+        return 'unknown';
+    }
+
+    // --- Templates ---
+
+    _templateUIAction(msg) {
+        if (msg.match(/ejecut|corr|play|run|inici/)) {
+            return "Para ejecutar el código, busca el botón **▶ Ejecutar** (Play) situado en la parte superior derecha del editor (o abajo en móviles).";
+        }
+        return "Usa los botones de la interfaz para controlar el editor. El botón Play (▶) ejecuta tu código.";
+    }
+
+    _templateInstructions(kb, ex, msg, code) {
+        // Check for specific terms first
+        const termExplanation = this._findTermInKB(msg, kb, ex, code);
+        if (termExplanation) return termExplanation;
+
+        if (kb.line_by_line) {
+            return `Aquí tienes lo que debes hacer en este ejercicio:\n\n${kb.line_by_line}\n\n¡Inténtalo y dime si te atascas!`;
+        }
+        return `Para este ejercicio "${ex.title}", revisa los comentarios en el código. Suelen indicar los pasos a seguir.`;
+    }
+
+    _templateExplainCode(kb, ex, msg, code) {
+        // Try to find specific terms in the message
+        const termExplanation = this._findTermInKB(msg, kb, ex, code);
+        if (termExplanation) return termExplanation;
+
+        let response = "";
+
+        if (kb.explanation) {
+            response += `**Función del Ejercicio:**\n${kb.explanation}\n\n`;
+        } else if (kb.summary) {
+            response += `**Función del Ejercicio:**\n${kb.summary}\n\n`;
+        }
+
+        if (kb.concepts) {
+            response += `**Conceptos Clave:**\n${kb.concepts}\n\n`;
+        }
+
+        if (kb.line_by_line) {
+            response += `**Desglose de Comandos:**\n${kb.line_by_line}\n\n`;
+        }
+
+        if (response) return response.trim();
+
+        const title = ex ? ex.title : "Ejercicio desconocido";
+        return `Este ejercicio trata sobre "${title}". Analiza el código de ejemplo, está diseñado para enseñarte este concepto. ¿Qué parte te confunde más?`;
+    }
+
+    _templateSummary(kb, ex, msg, code) {
+        // Check for specific terms first
+        const termExplanation = this._findTermInKB(msg, kb, ex, code);
+        if (termExplanation) return termExplanation;
+
+        if (kb.summary) {
+            return `En resumen: ${kb.summary}`;
+        }
+        const title = ex ? ex.title : "este tema";
+        return `El objetivo principal es dominar: ${title}.`;
+    }
+
+    _templateStepByStep(kb, ex) {
+        if (kb.line_by_line) {
+            return `Vamos a verlo paso a paso:\n\n${kb.line_by_line}`;
+        }
+        return "No tengo un desglose paso a paso guardado, pero si lees el código línea por línea verás que sigue una secuencia lógica.";
+    }
+
+    _templateError(kb, msg) {
+        // 1. Check known errors in KB
+        if (kb.errors) {
+            for (const [errName, errDesc] of Object.entries(kb.errors)) {
+                if (msg.includes(errName) || msg.toLowerCase().includes(errName.toLowerCase())) {
+                    return `💡 Ese error (${errName}) es común aquí. ${errDesc}`;
                 }
-                this.status.loaded = false;
-                throw new Error("⚠️ Memoria llena. Reiniciando motor IA... Por favor, intenta de nuevo en 5 segundos.");
-            } else if (error.message.includes("abort signal")) {
-                throw new Error("⚠️ Error de Memoria (Abort). El modelo es demasiado grande o el contexto muy largo para tu dispositivo. Intenta usar un modelo más pequeño (ej. Qwen 0.5B) o recargar la página.");
+            }
+        }
+
+        // 2. Check for Terminal/Console specific errors
+        if (msg.match(/terminal|consola/) && msg.match(/error|fall|no funciona/)) {
+            return `Si la terminal te da error, es posible que este ejercicio requiera un entorno más completo. **Intenta realizarlo en tu IDS (Entorno de Desarrollo Local)** para asegurar que todo funcione correctamente.`;
+        }
+
+        // 3. General advice if no specific error match
+        return `Entiendo que tienes problemas. Si te sale un mensaje de error en rojo, cópialo y pégalo aquí para que pueda decirte exactamente qué pasa.\n\nSi el código no hace nada, asegúrate de haber pulsado el botón "▶ Ejecutar".\n\n(Nota: Si el error persiste en la terminal, prueba a ejecutarlo en tu IDS local).`;
+    }
+
+    _templateHelp(kb, ex, msg, code) {
+        // Check for specific terms first
+        const termExplanation = this._findTermInKB(msg, kb, ex, code);
+        if (termExplanation) return termExplanation;
+
+        let response = "No te preocupes, es normal atascarse a veces. ";
+        if (kb.summary) {
+            response += `Recuerda que el objetivo es: ${kb.summary}\n\n`;
+        }
+        if (kb.line_by_line) {
+            response += `Intenta seguir estos pasos:\n${kb.line_by_line}`;
+        } else {
+            response += "Revisa las instrucciones en el panel izquierdo y el código de ejemplo.";
+        }
+        return response;
+    }
+
+    _templateConcept(kb, ex, msg, code) {
+        // Try to find specific terms in the message
+        const termExplanation = this._findTermInKB(msg, kb, ex, code);
+        if (termExplanation) return termExplanation;
+
+        if (kb.concepts) {
+            return `Conceptos clave: ${kb.concepts}`;
+        }
+        return "Este ejercicio se centra en conceptos fundamentales de Python. ¿Hay alguna palabra específica que no entiendas?";
+    }
+
+    _templateMotivation(kb) {
+        return "¡Vas muy bien! La programación es una carrera de fondo. Cada error es una oportunidad para aprender algo nuevo. ¡Sigue así!";
+    }
+
+    _templateFallback(kb, ex, msg, code) {
+        // Try to find specific terms in the message even in fallback
+        const termExplanation = this._findTermInKB(msg, kb, ex, code);
+        if (termExplanation) return termExplanation;
+
+        // More conversational fallback
+        const title = ex ? ex.title : "el ejercicio actual";
+        let info = kb.summary ? `Sobre "${title}": ${kb.summary}` : `Estoy aquí para ayudarte con "${title}".`;
+
+        return `${info}\n\nNo estoy seguro de haber entendido tu última pregunta. ¿Podrías reformularla? Puedes preguntarme "qué debo hacer", "explícame el código" o pegarme un error.`;
+    }
+
+    // --- Smart Search ---
+
+    _findTermInKB(msg, currentKb, currentEx, codeFromContext) {
+        // Dynamic Keyword Extraction
+        const keywords = this._extractKeywords(msg);
+
+        // 1. First Pass: Check for Variables in Current Code (Highest Priority)
+        // We check ALL keywords against the code first to ensure specific variables 
+        // (e.g., "nombre") take precedence over generic terms (e.g., "variable").
+
+        // Use code from context if available, otherwise fallback to example_code
+        const codeToScan = codeFromContext || (currentEx ? currentEx.example_code : null);
+
+        if (codeToScan) {
+            for (const term of keywords) {
+                // Look for "term = ..." assignments
+                const varRegex = new RegExp(`^\\s*${term}\\s*=.*?(?:#\\s*(.*))?$`, 'im');
+                const match = codeToScan.match(varRegex);
+
+                if (match) {
+                    const comment = match[1];
+                    if (comment) {
+                        return `💡 **Variable \`${term}\`:**\nSe usa para: ${comment.trim()}`;
+                    } else {
+                        return `💡 **Variable \`${term}\`:**\nEs una variable definida en el código de este ejercicio. Revisa dónde se asigna su valor.`;
+                    }
+                }
+            }
+        }
+
+        // 2. Second Pass: Check Glossary and Knowledge Base
+        for (const term of keywords) {
+            // Check if term is present as a whole word (regex boundary)
+            const regex = new RegExp(`\\b${term}\\b`, 'i');
+
+            // 0. Check Glossary (Highest Priority for Definitions)
+            // We check if the term matches a key in the glossary (case-insensitive)
+            if (this.glossary) {
+                const glossaryKey = Object.keys(this.glossary).find(k => k.toLowerCase() === term);
+                if (glossaryKey) {
+                    return `💡 **Definición de \`${glossaryKey}\`:**\n${this.glossary[glossaryKey]}`;
+                }
             }
 
-            throw error;
+            // 1. Check current exercise first (Priority)
+            if (currentKb.explanation && regex.test(currentKb.explanation)) {
+                return `**Sobre "${term}" en este ejercicio:**\n${currentKb.explanation}`;
+            }
+            if (currentKb.concepts && regex.test(currentKb.concepts)) {
+                return `**Concepto "${term}":** ${currentKb.concepts}`;
+            }
+
+            // 2. Check GLOBAL KB (Search other exercises)
+            for (const [id, data] of Object.entries(this.knowledgeBase)) {
+                // Search in explanation, summary, and concepts
+                const content = (data.explanation || "") + (data.summary || "") + (data.concepts || "");
+                if (regex.test(content)) {
+                    // Found a mention in another exercise
+                    // We return a snippet of the explanation or summary
+                    const snippet = data.explanation || data.summary || "Concepto avanzado.";
+                    // CLEANER RESPONSE FORMAT
+                    return `💡 **Concepto: ${term}** (Visto en Ejercicio ${id})\n\n"${snippet}"`;
+                }
+            }
+
+            // 3. Hardcoded fallback for very common terms if not found in KB (Safety net)
+            if (term === 'print') return "`print()` es una función que sirve para mostrar texto o números en la pantalla (consola).";
+            if (term === 'input') return "`input()` sirve para pedirle al usuario que escriba algo con el teclado.";
+            if (term === 'variable') return "Una variable es como una caja donde guardas datos (números, texto) para usarlos después.";
+            if (term === 'entero' || term === 'int') return "Un **entero** (`int`) es un número sin decimales (ej: 5, -10, 0).";
+            if (term === 'cadena' || term === 'string' || term === 'str' || term === 'texto') return "Una **cadena** (`str`) es texto encerrado entre comillas (ej: \"Hola\").";
+            if (term === 'booleano' || term === 'bool') return "Un **booleano** (`bool`) solo puede ser Verdadero (`True`) o Falso (`False`).";
         }
+        return null;
+    }
+    async _streamResponse(text, callbacks) {
+        if (callbacks.onToken) {
+            const tokens = text.split(/(?=[ \n])/); // Split by words/newlines
+            for (const token of tokens) {
+                callbacks.onToken(token);
+                await new Promise(r => setTimeout(r, 20)); // Slower typing for better UX
+            }
+        }
+    }
+
+
+    _extractKeywords(msg) {
+        // 1. Tokenize (split by non-word chars, keep Spanish accents)
+        // We want to keep technical terms (often English) and Spanish words
+        const words = msg.toLowerCase().split(/[^a-záéíóúñ0-9_]+/);
+
+        // 2. Filter Stopwords (Spanish + Common Chat)
+        const stopwords = new Set([
+            "que", "qué", "como", "cómo", "para", "sirve", "hace", "hacer", "el", "la", "los", "las",
+            "un", "una", "unos", "unas", "de", "del", "en", "con", "por", "y", "o", "u",
+            "es", "son", "esta", "está", "este", "esto", "ese", "eso", "esa", "mi", "tu", "su",
+            "yo", "tú", "él", "ella", "nosotros", "vosotros", "ellos", "ellas",
+            "me", "te", "se", "lo", "la", "le", "nos", "os", "les",
+            "a", "ante", "bajo", "cabe", "con", "contra", "de", "desde", "durante",
+            "en", "entre", "hacia", "hasta", "mediante", "para", "por", "según",
+            "sin", "so", "sobre", "tras", "versus", "via",
+            "hola", "adios", "gracias", "por favor", "ayuda", "explica", "explicame", "dime",
+            "ejercicio", "codigo", "funciona", "uso", "usar", "ejecutar", "correr",
+            "debo", "tengo", "puedo", "quiero", "necesito", "voy", "vamos", "ver", "mirar"
+        ]);
+
+        const keywords = [];
+        for (const w of words) {
+            if (w.length > 1 && !stopwords.has(w)) {
+                keywords.push(w);
+            }
+        }
+        return keywords;
     }
 }

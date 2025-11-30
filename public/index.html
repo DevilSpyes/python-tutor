@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self' https://cdn.jsdelivr.net https://pypi.org https://files.pythonhosted.org https://api.openai.com https://api.groq.com https://api.deepseek.com https://huggingface.co https://*.huggingface.co https://*.xethub.hf.co https://cas-bridge.xethub.hf.co https://*.hf.co https://translate.google.com https://dict.youdao.com; img-src 'self' data: blob:; media-src 'self' https://translate.google.com https://dict.youdao.com blob:; worker-src 'self' blob: https://huggingface.co https://cdn.jsdelivr.net; frame-src 'none'; object-src 'none'; base-uri 'self';">
+        content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self' https://cdn.jsdelivr.net https://pypi.org https://files.pythonhosted.org https://api.openai.com https://api.groq.com https://api.deepseek.com https://huggingface.co https://*.huggingface.co https://*.xethub.hf.co https://cas-bridge.xethub.hf.co https://*.hf.co https://translate.google.com https://dict.youdao.com; img-src 'self' data: blob:; media-src 'self' https://translate.google.com https://dict.youdao.com blob:; worker-src 'self' blob: https://huggingface.co https://cdn.jsdelivr.net; frame-src 'none'; object-src 'none'; base-uri 'self';">
     <title>CyberSec Python Tutor (Web Edition)</title>
     <link rel="stylesheet" href="/static/css/cyberpunk.css">
     <link rel="stylesheet" href="/static/css/lesson_styles.css">
@@ -35,7 +35,7 @@
         <div class="loader-spinner"
             style="border: 4px solid #333; border-top: 4px solid #0f0; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 20px;">
         </div>
-        <div>INITIALIZING SYSTEM...</div>
+        <div>INICIANDO SISTEMA...</div>
         <style>
             @keyframes spin {
                 0% {
@@ -168,7 +168,9 @@
     <div id="ai-settings-modal" class="modal"></div>
 
     <footer class="app-footer">
-        Curso de Python orientado a Ciberseguridad 2025 — by <span>Carlos Domínguez</span>
+        Curso de Python orientado a Ciberseguridad 2025 — by <span>Carlos Domínguez</span> | <a
+            href="/privacy_policy.html" style="color: var(--neon-cyan); text-decoration: none;">Política de Privacidad y
+            Cookies</a>
     </footer>
 
     <!-- Main App -->
