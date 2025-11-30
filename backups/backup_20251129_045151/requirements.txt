@@ -1,2 +1,0 @@
-# Minimal requirements for local development
-# To serve the app locally: python3 -m http.server
